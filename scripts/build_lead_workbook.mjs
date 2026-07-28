@@ -1,0 +1,470 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+import { SpreadsheetFile, Workbook } from "@oai/artifact-tool";
+
+function readArg(name) {
+  const index = process.argv.indexOf(name);
+  if (index === -1 || !process.argv[index + 1]) {
+    throw new Error(`Missing required argument: ${name}`);
+  }
+  return process.argv[index + 1];
+}
+
+function asText(value) {
+  if (value === undefined || value === null) return "";
+  return String(value);
+}
+
+function asDate(value) {
+  const text = asText(value);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+  return new Date(`${text}T12:00:00Z`);
+}
+
+function clampScore(value, max) {
+  const number = Number(value ?? 0);
+  if (!Number.isFinite(number)) return 0;
+  return Math.max(0, Math.min(max, number));
+}
+
+function sourceText(value) {
+  if (!Array.isArray(value)) return asText(value);
+  return value.filter(Boolean).join("\n");
+}
+
+function requireBrief(brief) {
+  const fields = [
+    "product",
+    "target_market",
+    "cooperation_model",
+    "supply_capability",
+    "customer_size",
+    "reference_brands",
+    "exclusions",
+  ];
+  const missing = fields.filter((field) => !asText(brief?.[field]).trim());
+  if (missing.length) {
+    throw new Error(`Missing required brief fields: ${missing.join(", ")}`);
+  }
+}
+
+function validateLead(lead, index) {
+  if (!asText(lead?.company).trim()) {
+    throw new Error(`Lead ${index + 1} is missing company`);
+  }
+  const maxima = {
+    product_overlap: 30,
+    channel_fit: 20,
+    cooperation_fit: 15,
+    supply_fit: 10,
+    size_fit: 10,
+    evidence_quality: 10,
+    reachability: 5,
+  };
+  for (const [field, max] of Object.entries(maxima)) {
+    const value = Number(lead?.scores?.[field] ?? 0);
+    if (!Number.isFinite(value) || value < 0 || value > max) {
+      throw new Error(`Lead ${index + 1} has invalid score ${field}; expected 0-${max}`);
+    }
+  }
+}
+
+function styleTitle(sheet, range, title) {
+  sheet.mergeCells(range);
+  const cell = range.split(":")[0];
+  sheet.getRange(cell).values = [[title]];
+  sheet.getRange(range).format = {
+    fill: "#17365D",
+    font: { bold: true, color: "#FFFFFF", size: 16 },
+    verticalAlignment: "center",
+  };
+  sheet.getRange(range).format.rowHeight = 34;
+}
+
+function styleHeader(range) {
+  range.format = {
+    fill: "#17365D",
+    font: { bold: true, color: "#FFFFFF" },
+    wrapText: true,
+    verticalAlignment: "center",
+  };
+  range.format.rowHeight = 30;
+}
+
+function setWidths(sheet, widths, lastRow) {
+  for (const [column, width] of Object.entries(widths)) {
+    sheet.getRange(`${column}1:${column}${lastRow}`).format.columnWidth = width;
+  }
+}
+
+function setLeadValues(sheet, leads, startRow) {
+  const scoreFields = [
+    ["product_overlap", 30],
+    ["channel_fit", 20],
+    ["cooperation_fit", 15],
+    ["supply_fit", 10],
+    ["size_fit", 10],
+    ["evidence_quality", 10],
+    ["reachability", 5],
+  ];
+  for (let index = 0; index < leads.length; index += 1) {
+    const lead = leads[index];
+    const row = startRow + index;
+    const scores = scoreFields.map(([field, max]) => clampScore(lead.scores?.[field], max));
+    sheet.getRange(`A${row}:AC${row}`).values = [[
+      Number(lead.priority ?? index + 1),
+      asText(lead.company),
+      asText(lead.legal_name),
+      asText(lead.customer_type),
+      asText(lead.size_band),
+      asText(lead.size_evidence),
+      asText(lead.address),
+      asText(lead.country),
+      asText(lead.website),
+      asText(lead.product_evidence),
+      asText(lead.contact_name),
+      asText(lead.contact_title),
+      asText(lead.contact_status),
+      asText(lead.email),
+      asText(lead.email_type),
+      asText(lead.phone),
+      asText(lead.phone_type),
+      asText(lead.linkedin),
+      asText(lead.fit_reason),
+      asText(lead.risks),
+      asText(lead.confidence),
+      asDate(lead.verified_date),
+      ...scores,
+    ]];
+    sheet.getRange(`AD${row}`).formulas = [[`=SUM(W${row}:AC${row})`]];
+    sheet.getRange(`AE${row}`).formulas = [[
+      `=IF(AD${row}>=85,"High",IF(AD${row}>=70,"Medium","Explore"))`,
+    ]];
+    sheet.getRange(`AF${row}:AH${row}`).values = [[
+      sourceText(lead.source_urls),
+      asText(lead.evidence_boundary),
+      asText(lead.next_step),
+    ]];
+  }
+}
+
+function configureLeadSheet(sheet, leads, tableName) {
+  const headers = [[
+    "Priority", "Company", "Legal name", "Customer type", "Size band", "Size evidence",
+    "Address", "Country", "Website", "Product/category evidence", "Contact", "Title/department",
+    "Contact status", "Email", "Email type", "Phone", "Phone type", "LinkedIn",
+    "Fit reason", "Risks", "Confidence", "Verified date", "Product overlap (30)",
+    "Channel fit (20)", "Cooperation fit (15)", "Supply fit (10)", "Size fit (10)",
+    "Evidence quality (10)", "Reachability (5)", "Total", "Tier", "Source URLs",
+    "Evidence boundary", "Next step",
+  ]];
+  const startRow = 3;
+  const endRow = startRow + leads.length;
+  styleTitle(sheet, "A1:AH1", sheet.name);
+  sheet.getRange("A3:AH3").values = headers;
+  styleHeader(sheet.getRange("A3:AH3"));
+  setLeadValues(sheet, leads, 4);
+  sheet.showGridLines = false;
+  sheet.freezePanes.freezeRows(3);
+  sheet.freezePanes.freezeColumns(2);
+
+  const body = sheet.getRange(`A4:AH${endRow}`);
+  body.format = {
+    font: { size: 10 },
+    wrapText: true,
+    verticalAlignment: "top",
+    borders: {
+      insideHorizontal: { style: "thin", color: "#D9E2F3" },
+      bottom: { style: "thin", color: "#D9E2F3" },
+    },
+  };
+  body.format.rowHeight = 76;
+  sheet.getRange(`A4:A${endRow}`).format.horizontalAlignment = "center";
+  sheet.getRange(`W4:AE${endRow}`).format.horizontalAlignment = "center";
+  sheet.getRange(`V4:V${endRow}`).format.numberFormat = "yyyy-mm-dd";
+
+  sheet.getRange(`AE4:AE${endRow}`).conditionalFormats.add("containsText", {
+    text: "High",
+    format: { fill: "#E2F0D9", font: { color: "#375623", bold: true } },
+  });
+  sheet.getRange(`AE4:AE${endRow}`).conditionalFormats.add("containsText", {
+    text: "Medium",
+    format: { fill: "#FFF2CC", font: { color: "#7F6000", bold: true } },
+  });
+  sheet.getRange(`AE4:AE${endRow}`).conditionalFormats.add("containsText", {
+    text: "Explore",
+    format: { fill: "#FCE4D6", font: { color: "#C00000" } },
+  });
+
+  setWidths(sheet, {
+    A: 8, B: 27, C: 28, D: 20, E: 15, F: 30, G: 32, H: 14, I: 30,
+    J: 38, K: 20, L: 25, M: 20, N: 28, O: 20, P: 20, Q: 16, R: 38,
+    S: 38, T: 34, U: 13, V: 14, W: 14, X: 14, Y: 15, Z: 13, AA: 12,
+    AB: 15, AC: 13, AD: 10, AE: 12, AF: 44, AG: 48, AH: 42,
+  }, endRow);
+
+  const table = sheet.tables.add(`A3:AH${endRow}`, true, tableName);
+  table.style = "TableStyleMedium2";
+  table.showBandedRows = true;
+  table.showFilterButton = true;
+}
+
+const inputPath = path.resolve(readArg("--input"));
+const outputPath = path.resolve(readArg("--output"));
+const previewDir = path.resolve(readArg("--preview-dir"));
+const data = JSON.parse(await fs.readFile(inputPath, "utf8"));
+
+requireBrief(data.brief);
+if (!Array.isArray(data.leads) || data.leads.length === 0) {
+  throw new Error("At least one qualified lead is required");
+}
+data.leads.forEach(validateLead);
+if (Array.isArray(data.near_matches)) data.near_matches.forEach(validateLead);
+
+await fs.mkdir(path.dirname(outputPath), { recursive: true });
+await fs.mkdir(previewDir, { recursive: true });
+
+const workbook = Workbook.create();
+const guide = workbook.worksheets.add("Brief & Guide");
+const leadsSheet = workbook.worksheets.add("Qualified Leads");
+const outreach = workbook.worksheets.add("Outreach Drafts");
+const evidence = workbook.worksheets.add("Evidence & Scoring");
+const nearMatches = Array.isArray(data.near_matches) && data.near_matches.length
+  ? workbook.worksheets.add("Near Matches")
+  : null;
+const excluded = Array.isArray(data.excluded) && data.excluded.length
+  ? workbook.worksheets.add("Excluded")
+  : null;
+
+workbook.comments.setSelf({
+  displayName: asText(data.sender?.name) || "User",
+});
+
+styleTitle(guide, "A1:H1", "Public-Web Trade Lead Workbook");
+guide.showGridLines = false;
+guide.getRange("A3:B13").values = [
+  ["Field", "Value"],
+  ["Product", asText(data.brief.product)],
+  ["Target market", asText(data.brief.target_market)],
+  ["Cooperation model", asText(data.brief.cooperation_model)],
+  ["Supply capability", asText(data.brief.supply_capability)],
+  ["Customer size", asText(data.brief.customer_size)],
+  ["Reference brands", asText(data.brief.reference_brands)],
+  ["Exclusions", asText(data.brief.exclusions)],
+  ["Target count", Number(data.brief.target_count ?? 20)],
+  ["Product sources", sourceText(data.brief.product_sources)],
+  ["Research notes", asText(data.brief.research_notes)],
+];
+styleHeader(guide.getRange("A3:B3"));
+guide.getRange("A4:B13").format = {
+  wrapText: true,
+  verticalAlignment: "top",
+  borders: { insideHorizontal: { style: "thin", color: "#D9E2F3" } },
+};
+guide.getRange("A4:A13").format = { fill: "#D9EAF7", font: { bold: true, color: "#17365D" } };
+guide.getRange("D3:H3").values = [[
+  "Qualified", "Near matches", "Excluded", "Named contacts", "Company channels",
+]];
+styleHeader(guide.getRange("D3:H3"));
+const qualifiedEnd = data.leads.length + 3;
+guide.getRange("D4").formulas = [[`=COUNTA('Qualified Leads'!B4:B${qualifiedEnd})`]];
+guide.getRange("E4").values = [[nearMatches ? data.near_matches.length : 0]];
+guide.getRange("F4").values = [[excluded ? data.excluded.length : 0]];
+guide.getRange("G4").formulas = [[
+  `=COUNTIF('Qualified Leads'!M4:M${qualifiedEnd},"verified public")+COUNTIF('Qualified Leads'!M4:M${qualifiedEnd},"secondary-source only")`,
+]];
+guide.getRange("H4").formulas = [[`=D4-G4`]];
+guide.getRange("D4:H4").format = {
+  fill: "#F2F7FB",
+  font: { bold: true, color: "#17365D", size: 15 },
+  horizontalAlignment: "center",
+};
+guide.mergeCells("D6:H8");
+guide.getRange("D6").values = [[
+  "Public product and channel fit is a prospecting hypothesis. It does not prove active demand, current purchasing, supplier dissatisfaction, or buying intent."
+]];
+guide.getRange("D6:H8").format = {
+  fill: "#FFF2CC",
+  font: { color: "#7F6000" },
+  wrapText: true,
+  verticalAlignment: "center",
+};
+guide.mergeCells("D10:H13");
+guide.getRange("D10").values = [[
+  "Contact rule: use a named person only when the identity and role are publicly supported. Otherwise use a department, company email, public form, or switchboard. Never infer email patterns."
+]];
+guide.getRange("D10:H13").format = {
+  fill: "#E2F0D9",
+  font: { color: "#375623" },
+  wrapText: true,
+  verticalAlignment: "center",
+};
+setWidths(guide, { A: 23, B: 66, C: 4, D: 17, E: 17, F: 15, G: 18, H: 20 }, 13);
+
+configureLeadSheet(leadsSheet, data.leads, "QualifiedLeadTable");
+
+styleTitle(outreach, "A1:G1", "Personalized Outreach Drafts");
+outreach.getRange("A3:G3").values = [[
+  "Priority", "Company", "Recipient", "Email/route", "Subject", "Draft", "Contact note",
+]];
+styleHeader(outreach.getRange("A3:G3"));
+for (let index = 0; index < data.leads.length; index += 1) {
+  const lead = data.leads[index];
+  const row = index + 4;
+  outreach.getRange(`A${row}:G${row}`).values = [[
+    Number(lead.priority ?? index + 1),
+    asText(lead.company),
+    asText(lead.contact_name) || asText(lead.contact_title) || "Company team",
+    asText(lead.email) || asText(lead.website),
+    asText(lead.outreach_subject),
+    asText(lead.outreach_body),
+    `${asText(lead.contact_status)} | ${asText(lead.email_type)}`,
+  ]];
+}
+const outreachEnd = data.leads.length + 3;
+outreach.getRange(`A4:G${outreachEnd}`).format = {
+  wrapText: true,
+  verticalAlignment: "top",
+  borders: { insideHorizontal: { style: "thin", color: "#D9E2F3" } },
+};
+outreach.getRange(`A4:G${outreachEnd}`).format.rowHeight = 150;
+outreach.showGridLines = false;
+outreach.freezePanes.freezeRows(3);
+setWidths(outreach, { A: 8, B: 27, C: 23, D: 30, E: 42, F: 92, G: 28 }, outreachEnd);
+const outreachTable = outreach.tables.add(`A3:G${outreachEnd}`, true, "OutreachDraftTable");
+outreachTable.style = "TableStyleMedium2";
+outreachTable.showBandedRows = true;
+outreachTable.showFilterButton = true;
+
+styleTitle(evidence, "A1:M1", "Evidence, Boundaries & Scoring");
+evidence.getRange("A3:M3").values = [[
+  "Priority", "Company", "Source URLs", "Evidence boundary", "Next step",
+  "Product (30)", "Channel (20)", "Cooperation (15)", "Supply (10)",
+  "Size (10)", "Evidence (10)", "Reachability (5)", "Total / Tier",
+]];
+styleHeader(evidence.getRange("A3:M3"));
+for (let index = 0; index < data.leads.length; index += 1) {
+  const lead = data.leads[index];
+  const row = index + 4;
+  const sourceRow = index + 4;
+  evidence.getRange(`A${row}:E${row}`).values = [[
+    Number(lead.priority ?? index + 1),
+    asText(lead.company),
+    sourceText(lead.source_urls),
+    asText(lead.evidence_boundary),
+    asText(lead.next_step),
+  ]];
+  evidence.getRange(`F${row}:M${row}`).formulas = [[
+    `='Qualified Leads'!W${sourceRow}`,
+    `='Qualified Leads'!X${sourceRow}`,
+    `='Qualified Leads'!Y${sourceRow}`,
+    `='Qualified Leads'!Z${sourceRow}`,
+    `='Qualified Leads'!AA${sourceRow}`,
+    `='Qualified Leads'!AB${sourceRow}`,
+    `='Qualified Leads'!AC${sourceRow}`,
+    `='Qualified Leads'!AD${sourceRow}&" / "&'Qualified Leads'!AE${sourceRow}`,
+  ]];
+}
+const evidenceEnd = data.leads.length + 3;
+evidence.getRange(`A4:M${evidenceEnd}`).format = {
+  wrapText: true,
+  verticalAlignment: "top",
+  borders: { insideHorizontal: { style: "thin", color: "#D9E2F3" } },
+};
+evidence.getRange(`A4:M${evidenceEnd}`).format.rowHeight = 86;
+evidence.getRange(`F4:M${evidenceEnd}`).format.horizontalAlignment = "center";
+evidence.showGridLines = false;
+evidence.freezePanes.freezeRows(3);
+setWidths(evidence, {
+  A: 8, B: 28, C: 50, D: 54, E: 42, F: 13, G: 13, H: 15, I: 12,
+  J: 12, K: 13, L: 14, M: 15,
+}, evidenceEnd);
+const evidenceTable = evidence.tables.add(`A3:M${evidenceEnd}`, true, "EvidenceScoreTable");
+evidenceTable.style = "TableStyleMedium2";
+evidenceTable.showBandedRows = true;
+evidenceTable.showFilterButton = true;
+
+if (nearMatches) {
+  configureLeadSheet(nearMatches, data.near_matches, "NearMatchTable");
+}
+
+if (excluded) {
+  styleTitle(excluded, "A1:D1", "Excluded Candidates");
+  excluded.getRange("A3:D3").values = [["Company", "Website", "Reason", "Source URL"]];
+  styleHeader(excluded.getRange("A3:D3"));
+  for (let index = 0; index < data.excluded.length; index += 1) {
+    const item = data.excluded[index];
+    const row = index + 4;
+    excluded.getRange(`A${row}:D${row}`).values = [[
+      asText(item.company),
+      asText(item.website),
+      asText(item.reason),
+      asText(item.source_url),
+    ]];
+  }
+  const excludedEnd = data.excluded.length + 3;
+  excluded.getRange(`A4:D${excludedEnd}`).format = {
+    wrapText: true,
+    verticalAlignment: "top",
+    borders: { insideHorizontal: { style: "thin", color: "#D9E2F3" } },
+  };
+  excluded.getRange(`A4:D${excludedEnd}`).format.rowHeight = 55;
+  excluded.showGridLines = false;
+  excluded.freezePanes.freezeRows(3);
+  setWidths(excluded, { A: 30, B: 34, C: 58, D: 48 }, excludedEnd);
+  const excludedTable = excluded.tables.add(`A3:D${excludedEnd}`, true, "ExcludedCandidateTable");
+  excludedTable.style = "TableStyleMedium2";
+  excludedTable.showBandedRows = true;
+}
+
+workbook.comments.addThread(
+  { cell: leadsSheet.getRange("AF3") },
+  "Keep plain-text source URLs for row-level auditability. Separate multiple sources with line breaks."
+);
+workbook.comments.addThread(
+  { cell: leadsSheet.getRange("S3") },
+  "State why public evidence suggests fit. Do not describe the company as actively buying unless a source explicitly proves it."
+);
+
+const keyInspect = await workbook.inspect({
+  kind: "table",
+  sheetId: "Qualified Leads",
+  range: `A3:AH${qualifiedEnd}`,
+  include: "values,formulas",
+  tableMaxRows: Math.min(data.leads.length + 1, 10),
+  tableMaxCols: 34,
+  maxChars: 10000,
+});
+console.log(keyInspect.ndjson);
+
+const errors = await workbook.inspect({
+  kind: "match",
+  searchTerm: "#REF!|#DIV/0!|#VALUE!|#NAME\\?|#N/A",
+  options: { useRegex: true, maxResults: 300 },
+  summary: "final formula error scan",
+});
+console.log(errors.ndjson);
+
+for (const sheet of workbook.worksheets.items) {
+  const preview = await workbook.render({
+    sheetName: sheet.name,
+    autoCrop: "all",
+    scale: 1,
+    format: "png",
+  });
+  const safeName = sheet.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  await fs.writeFile(
+    path.join(previewDir, `${safeName || "sheet"}.png`),
+    new Uint8Array(await preview.arrayBuffer()),
+  );
+}
+
+const output = await SpreadsheetFile.exportXlsx(workbook);
+await output.save(outputPath);
+console.log(JSON.stringify({
+  outputPath,
+  qualified: data.leads.length,
+  nearMatches: data.near_matches?.length ?? 0,
+  excluded: data.excluded?.length ?? 0,
+  sheets: workbook.worksheets.items.map((sheet) => sheet.name),
+}));

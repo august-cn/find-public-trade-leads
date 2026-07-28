@@ -1,0 +1,4 @@
+interface:
+  display_name: "Public-Web Trade Leads"
+  short_description: "用公开网页寻找、验证外贸客户并导出高质量 Excel 文件"
+  default_prompt: "Use $find-public-trade-leads to collect my seven-part product and ICP brief, research qualified prospects using public sources, and export a verified Excel workbook."

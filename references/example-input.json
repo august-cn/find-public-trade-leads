@@ -1,0 +1,108 @@
+{
+  "brief": {
+    "product": "Reusable insulated food-delivery bags with custom branding",
+    "target_market": "Poland",
+    "cooperation_model": "OEM and private-label supply",
+    "supply_capability": "Mixed-SKU pallets and full-container orders",
+    "customer_size": "Local medium-sized distributors and food-service suppliers",
+    "reference_brands": "Local professional catering-equipment brands",
+    "exclusions": "Pure delivery operators, single-location shops, and multinational groups",
+    "target_count": 2,
+    "product_sources": [],
+    "research_notes": "Demonstration data only",
+    "outreach_language": "Polish"
+  },
+  "sender": {
+    "name": "Export Manager",
+    "title": "General Manager",
+    "company": "Example Trading Co., Ltd.",
+    "email": "",
+    "phone": "",
+    "website": ""
+  },
+  "leads": [
+    {
+      "priority": 1,
+      "company": "Example Distribution One",
+      "legal_name": "Example Distribution One Sp. z o.o.",
+      "customer_type": "Food-service distributor",
+      "size_band": "Medium",
+      "size_evidence": "Demonstration proxy: several regional warehouses",
+      "address": "Example address",
+      "country": "Poland",
+      "website": "https://example.com",
+      "product_evidence": "Demonstration category overlap",
+      "contact_name": "",
+      "contact_title": "Purchasing Department",
+      "contact_status": "not found",
+      "email": "info@example.com",
+      "email_type": "company general",
+      "phone": "+00 000 000 000",
+      "phone_type": "switchboard",
+      "linkedin": "",
+      "fit_reason": "Inference: its channel could fit branded delivery equipment.",
+      "risks": "Demonstration row; replace with researched evidence.",
+      "confidence": "Low",
+      "verified_date": "2026-01-01",
+      "source_urls": [
+        "https://example.com"
+      ],
+      "evidence_boundary": "Fact: demonstration only. Inference: channel fit. Unknown: purchasing activity.",
+      "next_step": "Replace with verified public research.",
+      "outreach_subject": "Private-label insulated delivery bags",
+      "outreach_body": "Demonstration outreach draft.",
+      "scores": {
+        "product_overlap": 20,
+        "channel_fit": 15,
+        "cooperation_fit": 10,
+        "supply_fit": 8,
+        "size_fit": 8,
+        "evidence_quality": 3,
+        "reachability": 3
+      }
+    },
+    {
+      "priority": 2,
+      "company": "Example Supply Two",
+      "legal_name": "Example Supply Two Sp. z o.o.",
+      "customer_type": "Catering-equipment wholesaler",
+      "size_band": "Medium",
+      "size_evidence": "Demonstration proxy",
+      "address": "Example address",
+      "country": "Poland",
+      "website": "https://example.org",
+      "product_evidence": "Demonstration product overlap",
+      "contact_name": "",
+      "contact_title": "",
+      "contact_status": "not found",
+      "email": "",
+      "email_type": "not found",
+      "phone": "",
+      "phone_type": "not found",
+      "linkedin": "",
+      "fit_reason": "Inference: relevant wholesale channel.",
+      "risks": "Demonstration row; replace with researched evidence.",
+      "confidence": "Low",
+      "verified_date": "2026-01-01",
+      "source_urls": [
+        "https://example.org"
+      ],
+      "evidence_boundary": "Demonstration only.",
+      "next_step": "Replace with verified public research.",
+      "outreach_subject": "OEM delivery equipment",
+      "outreach_body": "Demonstration outreach draft.",
+      "scores": {
+        "product_overlap": 18,
+        "channel_fit": 15,
+        "cooperation_fit": 10,
+        "supply_fit": 8,
+        "size_fit": 8,
+        "evidence_quality": 2,
+        "reachability": 1
+      }
+    }
+  ],
+  "near_matches": [],
+  "excluded": [],
+  "generated_at": "2026-01-01"
+}
