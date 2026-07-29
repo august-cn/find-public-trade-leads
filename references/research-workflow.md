@@ -67,11 +67,13 @@ Write `estimated` or `proxy` when exact headcount is unavailable.
 
 For each row, separate:
 
-- `Fact`: directly supported by the cited source.
-- `Inference`: why the fact suggests commercial fit.
-- `Unknown`: any requested field that could not be verified.
+- `事实`: directly supported by the cited source.
+- `推断`: why the fact suggests commercial fit.
+- `未知`: any requested field that could not be verified.
 
 Do not describe public product overlap as current demand, buying intent, or an active sourcing project.
+
+Write the evidence summary, inference, uncertainty, size explanation, fit reason, risk, and next step in Simplified Chinese. Keep company names, personal names, addresses, contact routes, URLs, registered brands, and short source-original excerpts unchanged.
 
 ## Deduplication
 

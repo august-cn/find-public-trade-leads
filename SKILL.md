@@ -1,6 +1,6 @@
 ---
 name: find-public-trade-leads
-description: Collect a seven-part product and target-customer brief, research qualified foreign-trade prospects using public web sources only, verify company and contact evidence, score and deduplicate results, draft personalized outreach, and export a polished Excel workbook. Use when a user wants importers, distributors, wholesalers, brand owners, manufacturers, retailers, buyers, or other B2B prospects for any product and market without relying on paid sales-intelligence or enrichment plugins.
+description: Collect a seven-part product and target-customer brief, research qualified foreign-trade prospects using public web sources only, verify company and contact evidence, score and deduplicate results, draft personalized outreach, and export a polished Chinese-language Excel workbook while preserving source-original identifiers and outreach text. Use when a user wants importers, distributors, wholesalers, brand owners, manufacturers, retailers, buyers, or other B2B prospects for any product and market without relying on paid sales-intelligence or enrichment plugins.
 ---
 
 # Find Public Trade Leads
@@ -93,7 +93,27 @@ Ground the opening in a verified company fact. State the sender's product and co
 
 Do not send messages or enroll contacts in campaigns.
 
-## 6. Export the workbook
+## 6. Enforce Chinese workbook language
+
+Use Simplified Chinese for the workbook interface and research analysis by default, even when the target market uses another language.
+
+Write in Chinese:
+
+- every worksheet name, report title, column header, field label, instruction, note, score label, tier, status, and legend;
+- customer type, size band, size evidence, product evidence summary, fit reason, risk, confidence, evidence boundary, next step, exclusion reason, and research note;
+- contact, email, and phone type labels;
+- factual summaries and inferences. When source wording matters, write the Chinese summary first and place a short original-language excerpt after it.
+
+Keep these fields in their source-original form:
+
+- company and legal names, contact person names, postal addresses, email addresses, phone numbers, websites, source URLs, LinkedIn URLs, and registered brand or product names;
+- outreach subject and body written in the target market's business language.
+
+Translate a contact title or department into Chinese; add the original title in parentheses only when it improves identification. Never translate, rewrite, or infer an email address, URL, phone number, personal name, or postal address.
+
+Before export, review every narrative field in the input JSON. Translate avoidable foreign-language analysis into Chinese instead of relying only on Chinese column headers.
+
+## 7. Export the workbook
 
 Read [references/data-contract.md](references/data-contract.md).
 
@@ -115,21 +135,25 @@ Use the exact executable and dependency paths returned by the workspace dependen
 
 The workbook must contain:
 
-- `Brief & Guide`
-- `Qualified Leads`
-- `Outreach Drafts`
-- `Evidence & Scoring`
-- `Near Matches` when needed
+- `需求与说明`
+- `合格客户`
+- `开发信`
+- `证据与评分`
+- `待探索客户` when needed
+- `已排除` when needed
 
 After generation:
 
 - inspect the workbook summary and key ranges;
 - scan for formula errors;
 - view every rendered sheet;
+- verify that worksheet names, titles, headers, labels, legends, notes, statuses, tiers, and explanatory fields are in Chinese;
+- spot-check narrative customer fields and translate any avoidable foreign-language analysis into Chinese;
+- confirm that source-original identifiers and target-language outreach remain unchanged;
 - repair clipped or unreadable output;
 - return only the final `.xlsx`, not builders, JSON, or preview files.
 
-## 7. Handoff
+## 8. Handoff
 
 Report:
 

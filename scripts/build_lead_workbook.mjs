@@ -32,6 +32,46 @@ function sourceText(value) {
   return value.filter(Boolean).join("\n");
 }
 
+function categoryText(value, translations) {
+  const text = asText(value).trim();
+  if (!text) return "";
+  return translations[text.toLowerCase()] ?? text;
+}
+
+const sizeBandZh = {
+  micro: "微型",
+  small: "小型",
+  medium: "中型",
+  large: "大型",
+};
+
+const contactStatusZh = {
+  "verified public": "已公开核实",
+  "secondary-source only": "仅二手来源",
+  "not found": "未找到",
+};
+
+const emailTypeZh = {
+  "named public": "公开个人邮箱",
+  department: "部门邮箱",
+  "company general": "公司通用邮箱",
+  form: "联系表单",
+  "not found": "未找到",
+};
+
+const phoneTypeZh = {
+  direct: "直线电话",
+  department: "部门电话",
+  switchboard: "公司总机",
+  "not found": "未找到",
+};
+
+const confidenceZh = {
+  high: "高",
+  medium: "中",
+  low: "低",
+};
+
 function requireBrief(brief) {
   const fields = [
     "product",
@@ -116,7 +156,7 @@ function setLeadValues(sheet, leads, startRow) {
       asText(lead.company),
       asText(lead.legal_name),
       asText(lead.customer_type),
-      asText(lead.size_band),
+      categoryText(lead.size_band, sizeBandZh),
       asText(lead.size_evidence),
       asText(lead.address),
       asText(lead.country),
@@ -124,21 +164,21 @@ function setLeadValues(sheet, leads, startRow) {
       asText(lead.product_evidence),
       asText(lead.contact_name),
       asText(lead.contact_title),
-      asText(lead.contact_status),
+      categoryText(lead.contact_status, contactStatusZh),
       asText(lead.email),
-      asText(lead.email_type),
+      categoryText(lead.email_type, emailTypeZh),
       asText(lead.phone),
-      asText(lead.phone_type),
+      categoryText(lead.phone_type, phoneTypeZh),
       asText(lead.linkedin),
       asText(lead.fit_reason),
       asText(lead.risks),
-      asText(lead.confidence),
+      categoryText(lead.confidence, confidenceZh),
       asDate(lead.verified_date),
       ...scores,
     ]];
     sheet.getRange(`AD${row}`).formulas = [[`=SUM(W${row}:AC${row})`]];
     sheet.getRange(`AE${row}`).formulas = [[
-      `=IF(AD${row}>=85,"High",IF(AD${row}>=70,"Medium","Explore"))`,
+      `=IF(AD${row}>=85,"高优先级",IF(AD${row}>=70,"中优先级","待探索"))`,
     ]];
     sheet.getRange(`AF${row}:AH${row}`).values = [[
       sourceText(lead.source_urls),
@@ -150,13 +190,13 @@ function setLeadValues(sheet, leads, startRow) {
 
 function configureLeadSheet(sheet, leads, tableName) {
   const headers = [[
-    "Priority", "Company", "Legal name", "Customer type", "Size band", "Size evidence",
-    "Address", "Country", "Website", "Product/category evidence", "Contact", "Title/department",
-    "Contact status", "Email", "Email type", "Phone", "Phone type", "LinkedIn",
-    "Fit reason", "Risks", "Confidence", "Verified date", "Product overlap (30)",
-    "Channel fit (20)", "Cooperation fit (15)", "Supply fit (10)", "Size fit (10)",
-    "Evidence quality (10)", "Reachability (5)", "Total", "Tier", "Source URLs",
-    "Evidence boundary", "Next step",
+    "优先序号", "公司名称", "法定名称", "客户类型", "规模档位", "规模依据",
+    "地址（保留原文）", "国家或地区", "公司官网", "产品或品类证据", "联系人", "职位或部门",
+    "联系人状态", "邮箱（保留原文）", "邮箱类型", "电话（保留原文）", "电话类型", "LinkedIn",
+    "匹配理由", "风险与疑点", "可信度", "核实日期", "产品重合度（30）",
+    "渠道匹配（20）", "合作方式匹配（15）", "供货匹配（10）", "规模匹配（10）",
+    "证据质量（10）", "可联系程度（5）", "总分", "分级", "来源链接",
+    "证据边界", "下一步建议",
   ]];
   const startRow = 3;
   const endRow = startRow + leads.length;
@@ -184,15 +224,15 @@ function configureLeadSheet(sheet, leads, tableName) {
   sheet.getRange(`V4:V${endRow}`).format.numberFormat = "yyyy-mm-dd";
 
   sheet.getRange(`AE4:AE${endRow}`).conditionalFormats.add("containsText", {
-    text: "High",
+    text: "高优先级",
     format: { fill: "#E2F0D9", font: { color: "#375623", bold: true } },
   });
   sheet.getRange(`AE4:AE${endRow}`).conditionalFormats.add("containsText", {
-    text: "Medium",
+    text: "中优先级",
     format: { fill: "#FFF2CC", font: { color: "#7F6000", bold: true } },
   });
   sheet.getRange(`AE4:AE${endRow}`).conditionalFormats.add("containsText", {
-    text: "Explore",
+    text: "待探索",
     format: { fill: "#FCE4D6", font: { color: "#C00000" } },
   });
 
@@ -225,35 +265,35 @@ await fs.mkdir(path.dirname(outputPath), { recursive: true });
 await fs.mkdir(previewDir, { recursive: true });
 
 const workbook = Workbook.create();
-const guide = workbook.worksheets.add("Brief & Guide");
-const leadsSheet = workbook.worksheets.add("Qualified Leads");
-const outreach = workbook.worksheets.add("Outreach Drafts");
-const evidence = workbook.worksheets.add("Evidence & Scoring");
+const guide = workbook.worksheets.add("需求与说明");
+const leadsSheet = workbook.worksheets.add("合格客户");
+const outreach = workbook.worksheets.add("开发信");
+const evidence = workbook.worksheets.add("证据与评分");
 const nearMatches = Array.isArray(data.near_matches) && data.near_matches.length
-  ? workbook.worksheets.add("Near Matches")
+  ? workbook.worksheets.add("待探索客户")
   : null;
 const excluded = Array.isArray(data.excluded) && data.excluded.length
-  ? workbook.worksheets.add("Excluded")
+  ? workbook.worksheets.add("已排除")
   : null;
 
 workbook.comments.setSelf({
-  displayName: asText(data.sender?.name) || "User",
+  displayName: asText(data.sender?.name) || "用户",
 });
 
-styleTitle(guide, "A1:H1", "Public-Web Trade Lead Workbook");
+styleTitle(guide, "A1:H1", "公开网页外贸客户开发报告");
 guide.showGridLines = false;
 guide.getRange("A3:B13").values = [
-  ["Field", "Value"],
-  ["Product", asText(data.brief.product)],
-  ["Target market", asText(data.brief.target_market)],
-  ["Cooperation model", asText(data.brief.cooperation_model)],
-  ["Supply capability", asText(data.brief.supply_capability)],
-  ["Customer size", asText(data.brief.customer_size)],
-  ["Reference brands", asText(data.brief.reference_brands)],
-  ["Exclusions", asText(data.brief.exclusions)],
-  ["Target count", Number(data.brief.target_count ?? 20)],
-  ["Product sources", sourceText(data.brief.product_sources)],
-  ["Research notes", asText(data.brief.research_notes)],
+  ["项目", "内容"],
+  ["产品", asText(data.brief.product)],
+  ["目标市场", asText(data.brief.target_market)],
+  ["合作方式", asText(data.brief.cooperation_model)],
+  ["供货能力", asText(data.brief.supply_capability)],
+  ["客户规模", asText(data.brief.customer_size)],
+  ["参考品牌", asText(data.brief.reference_brands)],
+  ["排除条件", asText(data.brief.exclusions)],
+  ["目标客户数量", Number(data.brief.target_count ?? 20)],
+  ["产品资料来源", sourceText(data.brief.product_sources)],
+  ["研究说明", asText(data.brief.research_notes)],
 ];
 styleHeader(guide.getRange("A3:B3"));
 guide.getRange("A4:B13").format = {
@@ -263,15 +303,15 @@ guide.getRange("A4:B13").format = {
 };
 guide.getRange("A4:A13").format = { fill: "#D9EAF7", font: { bold: true, color: "#17365D" } };
 guide.getRange("D3:H3").values = [[
-  "Qualified", "Near matches", "Excluded", "Named contacts", "Company channels",
+  "合格客户", "待探索客户", "已排除", "具名联系人", "公司公共渠道",
 ]];
 styleHeader(guide.getRange("D3:H3"));
 const qualifiedEnd = data.leads.length + 3;
-guide.getRange("D4").formulas = [[`=COUNTA('Qualified Leads'!B4:B${qualifiedEnd})`]];
+guide.getRange("D4").formulas = [[`=COUNTA('合格客户'!B4:B${qualifiedEnd})`]];
 guide.getRange("E4").values = [[nearMatches ? data.near_matches.length : 0]];
 guide.getRange("F4").values = [[excluded ? data.excluded.length : 0]];
 guide.getRange("G4").formulas = [[
-  `=COUNTIF('Qualified Leads'!M4:M${qualifiedEnd},"verified public")+COUNTIF('Qualified Leads'!M4:M${qualifiedEnd},"secondary-source only")`,
+  `=COUNTIF('合格客户'!K4:K${qualifiedEnd},"?*")`,
 ]];
 guide.getRange("H4").formulas = [[`=D4-G4`]];
 guide.getRange("D4:H4").format = {
@@ -281,7 +321,7 @@ guide.getRange("D4:H4").format = {
 };
 guide.mergeCells("D6:H8");
 guide.getRange("D6").values = [[
-  "Public product and channel fit is a prospecting hypothesis. It does not prove active demand, current purchasing, supplier dissatisfaction, or buying intent."
+  "公开信息显示的产品与渠道匹配只是一项客户开发假设，不能证明对方存在当前需求、正在采购、对现有供应商不满或具有明确购买意向。"
 ]];
 guide.getRange("D6:H8").format = {
   fill: "#FFF2CC",
@@ -291,7 +331,7 @@ guide.getRange("D6:H8").format = {
 };
 guide.mergeCells("D10:H13");
 guide.getRange("D10").values = [[
-  "Contact rule: use a named person only when the identity and role are publicly supported. Otherwise use a department, company email, public form, or switchboard. Never infer email patterns."
+  "联系人规则：只有在公开证据能够支持身份和职责时，才使用具名联系人；否则使用部门邮箱、公司通用邮箱、公开联系表单或公司总机。禁止推测邮箱格式。"
 ]];
 guide.getRange("D10:H13").format = {
   fill: "#E2F0D9",
@@ -303,9 +343,9 @@ setWidths(guide, { A: 23, B: 66, C: 4, D: 17, E: 17, F: 15, G: 18, H: 20 }, 13);
 
 configureLeadSheet(leadsSheet, data.leads, "QualifiedLeadTable");
 
-styleTitle(outreach, "A1:G1", "Personalized Outreach Drafts");
+styleTitle(outreach, "A1:G1", "个性化开发信草稿");
 outreach.getRange("A3:G3").values = [[
-  "Priority", "Company", "Recipient", "Email/route", "Subject", "Draft", "Contact note",
+  "优先序号", "公司名称", "收件人", "邮箱或联系渠道", "邮件主题", "开发信正文", "联系说明",
 ]];
 styleHeader(outreach.getRange("A3:G3"));
 for (let index = 0; index < data.leads.length; index += 1) {
@@ -314,11 +354,11 @@ for (let index = 0; index < data.leads.length; index += 1) {
   outreach.getRange(`A${row}:G${row}`).values = [[
     Number(lead.priority ?? index + 1),
     asText(lead.company),
-    asText(lead.contact_name) || asText(lead.contact_title) || "Company team",
+    asText(lead.contact_name) || asText(lead.contact_title) || "公司团队",
     asText(lead.email) || asText(lead.website),
     asText(lead.outreach_subject),
     asText(lead.outreach_body),
-    `${asText(lead.contact_status)} | ${asText(lead.email_type)}`,
+    `${categoryText(lead.contact_status, contactStatusZh)} | ${categoryText(lead.email_type, emailTypeZh)}`,
   ]];
 }
 const outreachEnd = data.leads.length + 3;
@@ -336,11 +376,11 @@ outreachTable.style = "TableStyleMedium2";
 outreachTable.showBandedRows = true;
 outreachTable.showFilterButton = true;
 
-styleTitle(evidence, "A1:M1", "Evidence, Boundaries & Scoring");
+styleTitle(evidence, "A1:M1", "证据边界与评分明细");
 evidence.getRange("A3:M3").values = [[
-  "Priority", "Company", "Source URLs", "Evidence boundary", "Next step",
-  "Product (30)", "Channel (20)", "Cooperation (15)", "Supply (10)",
-  "Size (10)", "Evidence (10)", "Reachability (5)", "Total / Tier",
+  "优先序号", "公司名称", "来源链接", "证据边界", "下一步建议",
+  "产品重合度（30）", "渠道匹配（20）", "合作方式匹配（15）", "供货匹配（10）",
+  "规模匹配（10）", "证据质量（10）", "可联系程度（5）", "总分 / 分级",
 ]];
 styleHeader(evidence.getRange("A3:M3"));
 for (let index = 0; index < data.leads.length; index += 1) {
@@ -355,14 +395,14 @@ for (let index = 0; index < data.leads.length; index += 1) {
     asText(lead.next_step),
   ]];
   evidence.getRange(`F${row}:M${row}`).formulas = [[
-    `='Qualified Leads'!W${sourceRow}`,
-    `='Qualified Leads'!X${sourceRow}`,
-    `='Qualified Leads'!Y${sourceRow}`,
-    `='Qualified Leads'!Z${sourceRow}`,
-    `='Qualified Leads'!AA${sourceRow}`,
-    `='Qualified Leads'!AB${sourceRow}`,
-    `='Qualified Leads'!AC${sourceRow}`,
-    `='Qualified Leads'!AD${sourceRow}&" / "&'Qualified Leads'!AE${sourceRow}`,
+    `='合格客户'!W${sourceRow}`,
+    `='合格客户'!X${sourceRow}`,
+    `='合格客户'!Y${sourceRow}`,
+    `='合格客户'!Z${sourceRow}`,
+    `='合格客户'!AA${sourceRow}`,
+    `='合格客户'!AB${sourceRow}`,
+    `='合格客户'!AC${sourceRow}`,
+    `='合格客户'!AD${sourceRow}&" / "&'合格客户'!AE${sourceRow}`,
   ]];
 }
 const evidenceEnd = data.leads.length + 3;
@@ -389,8 +429,8 @@ if (nearMatches) {
 }
 
 if (excluded) {
-  styleTitle(excluded, "A1:D1", "Excluded Candidates");
-  excluded.getRange("A3:D3").values = [["Company", "Website", "Reason", "Source URL"]];
+  styleTitle(excluded, "A1:D1", "已排除的候选公司");
+  excluded.getRange("A3:D3").values = [["公司名称", "公司官网", "排除原因", "来源链接"]];
   styleHeader(excluded.getRange("A3:D3"));
   for (let index = 0; index < data.excluded.length; index += 1) {
     const item = data.excluded[index];
@@ -419,16 +459,16 @@ if (excluded) {
 
 workbook.comments.addThread(
   { cell: leadsSheet.getRange("AF3") },
-  "Keep plain-text source URLs for row-level auditability. Separate multiple sources with line breaks."
+  "为便于逐行核查，请保留纯文本来源链接；多个来源用换行分隔。"
 );
 workbook.comments.addThread(
   { cell: leadsSheet.getRange("S3") },
-  "State why public evidence suggests fit. Do not describe the company as actively buying unless a source explicitly proves it."
+  "说明公开证据为何支持潜在匹配。除非来源明确证明，否则不得描述该公司正在采购。"
 );
 
 const keyInspect = await workbook.inspect({
   kind: "table",
-  sheetId: "Qualified Leads",
+  sheetId: "合格客户",
   range: `A3:AH${qualifiedEnd}`,
   include: "values,formulas",
   tableMaxRows: Math.min(data.leads.length + 1, 10),
@@ -445,7 +485,7 @@ const errors = await workbook.inspect({
 });
 console.log(errors.ndjson);
 
-for (const sheet of workbook.worksheets.items) {
+for (const [index, sheet] of workbook.worksheets.items.entries()) {
   const preview = await workbook.render({
     sheetName: sheet.name,
     autoCrop: "all",
@@ -454,7 +494,7 @@ for (const sheet of workbook.worksheets.items) {
   });
   const safeName = sheet.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   await fs.writeFile(
-    path.join(previewDir, `${safeName || "sheet"}.png`),
+    path.join(previewDir, `${safeName || `sheet-${index + 1}`}.png`),
     new Uint8Array(await preview.arrayBuffer()),
   );
 }

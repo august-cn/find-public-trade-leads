@@ -82,15 +82,16 @@ Agent 会先要求填写以下 7 项信息；信息完整后才开始搜索。
 
 ## Excel 输出
 
-默认工作簿包含以下工作表：
+默认工作簿的界面和研究分析使用简体中文，包含以下工作表：
 
 | 工作表 | 内容 |
 | --- | --- |
-| `Brief & Guide` | 用户输入、研究口径、评分规则和使用说明 |
-| `Qualified Leads` | 合格客户、联系方式、匹配理由、风险和综合评分 |
-| `Outreach Drafts` | 每家公司的个性化开发信 |
-| `Evidence & Scoring` | 来源链接、事实与推断边界、分项评分 |
-| `Near Matches` | 证据不足或部分符合条件的候选公司，仅在需要时出现 |
+| `需求与说明` | 用户输入、研究口径、评分规则和使用说明 |
+| `合格客户` | 合格客户、联系方式、匹配理由、风险和综合评分 |
+| `开发信` | 每家公司的个性化开发信 |
+| `证据与评分` | 来源链接、事实与推断边界、分项评分 |
+| `待探索客户` | 证据不足或部分符合条件的候选公司，仅在需要时出现 |
+| `已排除` | 不符合硬性条件的候选公司，仅在需要时出现 |
 
 评分总计 100 分：
 
@@ -104,9 +105,18 @@ Agent 会先要求填写以下 7 项信息；信息完整后才开始搜索。
 | 证据质量 | 10 |
 | 可联系程度 | 5 |
 
-- `High`：85–100
-- `Medium`：70–84
-- `Explore`：低于 70
+- `高优先级`：85–100
+- `中优先级`：70–84
+- `待探索`：低于 70
+
+### 中文输出规则
+
+- 工作表名称、标题行、列标题、字段标签、评分、分级、状态、图例、备注和说明文字全部使用中文。
+- 客户类型、规模说明、产品证据、匹配理由、风险、可信度、证据边界、下一步和排除原因尽量使用中文。
+- 公司及法定名称、联系人姓名、邮寄地址、邮箱、电话、网址、LinkedIn、来源链接和注册品牌保留原文，避免破坏身份识别和联系方式。
+- 联系人职位默认翻译成中文；有助于核实时，可在中文后用括号保留原职位。
+- 开发信标题和正文按照目标市场的商务语言输出。
+- 需要引用来源原话时，先给出中文概括，再附简短原文。
 
 ## 数据与合规原则
 
@@ -161,6 +171,6 @@ find-public-trade-leads/
 
 ## English summary
 
-Find Public Trade Leads is a reusable Codex skill for public-web B2B prospecting. It collects a seven-part product and ideal-customer brief, discovers and verifies companies using public sources, scores and deduplicates prospects, drafts evidence-based outreach, and exports a polished Excel workbook.
+Find Public Trade Leads is a reusable Codex skill for public-web B2B prospecting. It collects a seven-part product and ideal-customer brief, discovers and verifies companies using public sources, scores and deduplicates prospects, drafts evidence-based outreach, and exports a polished Excel workbook. Workbook titles, labels, statuses, and research analysis default to Simplified Chinese, while source-original identifiers and target-market outreach remain unchanged.
 
 It works across products and markets without requiring Apollo or another paid sales-intelligence service. Unsupported contact fields remain empty, every retained prospect includes source evidence, and product fit is treated as a prospecting hypothesis rather than proof of active purchasing demand.

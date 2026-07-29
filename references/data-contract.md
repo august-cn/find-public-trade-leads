@@ -34,6 +34,27 @@ Optional:
 - `research_notes` string
 - `outreach_language` string
 
+## Workbook language policy
+
+Keep JSON keys in English because they are machine-readable. Write the workbook-facing values in Simplified Chinese unless the field must remain source-original.
+
+Write these values in Chinese:
+
+- `brief` narrative values and `research_notes`;
+- `customer_type`, `size_band`, `size_evidence`, `country`, and `product_evidence`;
+- `contact_title`, `contact_status`, `email_type`, and `phone_type`;
+- `fit_reason`, `risks`, `confidence`, `evidence_boundary`, and `next_step`;
+- `near_match_reason` and excluded `reason`.
+
+Keep these values source-original:
+
+- `company`, `legal_name`, `contact_name`, and `address`;
+- `email`, `phone`, `website`, `linkedin`, and every URL;
+- registered brand or product names;
+- `outreach_subject` and `outreach_body` in the requested target-market language.
+
+When a job title or source phrase needs its original wording for identification, write the Chinese translation first and place the original in parentheses. Do not translate or alter identifiers and contact routes.
+
 ## `sender`
 
 Optional strings:
@@ -56,28 +77,28 @@ Each lead supports:
   "priority": 1,
   "company": "Company name",
   "legal_name": "Legal name",
-  "customer_type": "Distributor",
-  "size_band": "Medium",
-  "size_evidence": "Fact or proxy",
+  "customer_type": "经销商",
+  "size_band": "中型",
+  "size_evidence": "事实或明确标注的规模代理指标",
   "address": "Full address",
   "country": "Country",
   "website": "https://example.com",
-  "product_evidence": "Verified overlap",
+  "product_evidence": "已核实的产品或品类重合证据",
   "contact_name": "",
   "contact_title": "",
-  "contact_status": "verified public | secondary-source only | not found",
+  "contact_status": "已公开核实 | 仅二手来源 | 未找到",
   "email": "",
-  "email_type": "named public | department | company general | form | not found",
+  "email_type": "公开个人邮箱 | 部门邮箱 | 公司通用邮箱 | 联系表单 | 未找到",
   "phone": "",
-  "phone_type": "direct | department | switchboard | not found",
+  "phone_type": "直线电话 | 部门电话 | 公司总机 | 未找到",
   "linkedin": "",
-  "fit_reason": "Inference, not demand claim",
-  "risks": "Uncertainty or barrier",
-  "confidence": "High | Medium | Low",
+  "fit_reason": "中文匹配推断，不写成采购需求事实",
+  "risks": "中文描述不确定性或合作障碍",
+  "confidence": "高 | 中 | 低",
   "verified_date": "YYYY-MM-DD",
   "source_urls": ["https://example.com/page"],
-  "evidence_boundary": "Fact / Inference / Unknown",
-  "next_step": "Suggested next verification or contact action",
+  "evidence_boundary": "事实 / 推断 / 未知",
+  "next_step": "建议的下一步核实或联系动作",
   "outreach_subject": "Subject",
   "outreach_body": "Personalized draft",
   "scores": {
@@ -106,7 +127,7 @@ Each item supports:
 {
   "company": "Company name",
   "website": "https://example.com",
-  "reason": "Hard exclusion or identity conflict",
+  "reason": "中文说明硬性排除原因或主体冲突",
   "source_url": "https://example.com/page"
 }
 ```
