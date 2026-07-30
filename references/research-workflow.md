@@ -42,14 +42,60 @@ Mark a result `Near Match` when one important criterion is uncertain but the com
 
 ## Contact rules
 
+Treat contact discovery as a separate required pass after the company shortlist is qualified. Do not stop because a general email or switchboard was found.
+
+### Role order
+
 Prefer public contacts in this order:
 
 1. procurement, purchasing, sourcing, category management, product management;
-2. owner or managing director for genuinely small or owner-led firms;
-3. department email or public contact form;
-4. company-general email and phone.
+2. merchandising, buying, supplier management, imports, private label, or relevant business-unit leadership;
+3. owner or managing director for genuinely small or owner-led firms;
+4. relevant department email or department phone;
+5. company-general email, contact form, and switchboard.
+
+Translate these role families into the target market's language before searching.
+
+### Required public search lanes
+
+For every retained company, run and record at least these lanes:
+
+1. official site: team, management, about, contact, imprint, press, careers, supplier, and category pages;
+2. domain query: `site:company-domain` plus local-language purchasing, sourcing, category, product, supplier, and buyer titles;
+3. company-name query plus the same role terms;
+4. public professional-network profiles or search snippets that show both current company and role;
+5. public PDFs, catalogs, press releases, exhibitor profiles, association pages, or job postings that name responsible staff.
+
+Use multiple role variants. A search for only `procurement` is not enough when the likely owner is a category manager, product manager, buyer, merchandise manager, import manager, or managing director.
+
+### Verification and completion
+
+Accept a named person only when public evidence supports:
+
+- the person's name;
+- current assignment to the exact company or resolved legal entity;
+- a role relevant to buying, product, category, sourcing, supplier management, imports, or owner-led purchasing.
+
+Use `已公开核实` when official evidence supports the person and role. Use `仅二手来源` when a credible public professional or industry source supports both but the company site does not. Use `待核实` only when the person-company match is plausible but role currency remains uncertain; do not treat this as a verified buyer.
+
+The contact pass is complete only when either:
+
+- a named contact and contact-specific source are recorded; or
+- all required public search lanes are recorded in `contact_search_note`, `contact_status` explains the fallback, and the best department or company route is supplied.
+
+Never leave `contact_status` or `contact_search_note` blank. When no person is found, write `未找到具名采购联系人` in the workbook contact cell and keep any recommended department explicitly labeled as a transfer target rather than a named person.
 
 Never infer an email from a naming pattern. Never convert a general mailbox into a named person's email.
+
+### Optional Apollo second pass
+
+Public web research remains the default and must be completed first. If named-contact coverage is zero or below 50% of the qualified list, offer Apollo installation or connection once as an optional enrichment pass.
+
+- State that Apollo may require a paid plan or consume credits.
+- Do not install, connect, or spend credits without user approval.
+- If Apollo is not installed, use the available plugin installation prompt rather than giving manual token or credential instructions.
+- If the user declines, Apollo is unavailable, or no result is returned, continue with the public-web workbook and preserve the unresolved status.
+- Verify any Apollo contact against company identity and role; label its provenance and do not merge conflicting people silently.
 
 ## Size evidence
 

@@ -1,6 +1,6 @@
 ---
 name: find-public-trade-leads
-description: Collect a seven-part product and target-customer brief, research qualified foreign-trade prospects using public web sources only, verify company and contact evidence, score and deduplicate results, draft personalized outreach, and export a polished Chinese-language Excel workbook while preserving source-original identifiers and outreach text. Use when a user wants importers, distributors, wholesalers, brand owners, manufacturers, retailers, buyers, or other B2B prospects for any product and market without relying on paid sales-intelligence or enrichment plugins.
+description: Collect a seven-part product and target-customer brief, research qualified foreign-trade prospects using public web sources, run a dedicated named procurement-contact search for every shortlisted company, verify company and contact evidence, score and deduplicate results, draft personalized outreach, and export a polished Chinese-language Excel workbook. Use when a user wants importers, distributors, wholesalers, brand owners, manufacturers, retailers, buyers, decision-makers, or other B2B prospects for any product and market, with optional Apollo enrichment only when public contact coverage remains inadequate.
 ---
 
 # Find Public Trade Leads
@@ -41,7 +41,7 @@ Derive:
 - reproducible query families;
 - a visible 100-point scoring model.
 
-Use only public web search, official company pages, official catalogs, public registries, trade associations, exhibitor lists, and reputable business directories. Do not require or invoke paid enrichment, credit-consuming databases, CRM mutations, or outbound platforms.
+Use public web search, official company pages, official catalogs, public registries, trade associations, exhibitor lists, and reputable business directories as the default research layer. Do not require paid enrichment, CRM mutations, or outbound platforms to produce the first useful workbook.
 
 ## 3. Discover, verify, and deduplicate
 
@@ -50,12 +50,20 @@ Search broadly, then verify the final shortlist.
 For every retained company:
 
 - verify company identity, market presence, website, address, business model, size band, product/category evidence, public email or contact route, and phone;
+- run the dedicated contact-discovery pass in [references/research-workflow.md](references/research-workflow.md) after company qualification; company-level research does not count as contact research;
+- search first for named procurement, purchasing, sourcing, category, product, merchandising, supplier-management, or buying contacts; for genuinely small owner-led firms, search the owner or managing director;
+- verify a named person's current company assignment and relevant role before recommending them;
+- populate `contact_status`, `contact_search_note`, and `contact_source_urls` for every retained row; these fields must never be blank;
+- continue until either a named contact is supported or the required public search lanes are documented as exhausted;
 - prefer official sources for final claims;
 - use directories and search snippets only as discovery or clearly labeled secondary evidence;
-- keep unsupported fields empty;
+- show `未找到具名采购联系人` instead of an empty contact-name cell when the public search is exhausted;
 - never guess a person's name, title, email pattern, LinkedIn URL, phone, purchasing activity, certifications, revenue, or employee count;
-- label named contacts as `verified public`, `secondary-source only`, or `not found`;
-- use a department or company-general channel when no public buyer is verifiable.
+- label named contacts as `已公开核实`, `仅二手来源`, or `待核实`;
+- when no named buyer is verifiable, label the result as `未找到具名联系人；已提供部门渠道`, `未找到具名联系人；已提供公司渠道`, or `公开网页未找到可用联系人`;
+- use a clearly labeled department or company-general route when no public buyer is verifiable.
+
+Measure named-contact coverage before drafting outreach. If coverage is zero or below 50% of qualified companies after the public search pass, pause once to offer installation or connection of Apollo as an optional second pass. Explain that Apollo may require a paid plan or consume credits. Do not imply that Apollo is free, do not install or spend credits without user approval, and do not block the public-web workbook when the user declines or Apollo is unavailable.
 
 Normalize domains and legal suffixes. Deduplicate by:
 
@@ -76,6 +84,17 @@ Score observable fit:
 - size fit: 10
 - evidence quality: 10
 - reachability: 5
+
+Derive reachability from the actual contact path:
+
+- 5: verified named buyer plus a public direct email or direct phone;
+- 4: verified or credible named buyer plus a public company or department route;
+- 3: relevant department email or department phone;
+- 2: company-general email or switchboard;
+- 1: contact form or website route only;
+- 0: no usable public route.
+
+Never award 4–5 points to a row that has no named contact.
 
 Use formulas in the workbook for totals and tiers:
 
@@ -148,6 +167,10 @@ After generation:
 - scan for formula errors;
 - view every rendered sheet;
 - verify that worksheet names, titles, headers, labels, legends, notes, statuses, tiers, and explanatory fields are in Chinese;
+- verify that every row has a nonblank contact status and contact-search note;
+- verify that contact names, roles, and LinkedIn URLs have contact-specific source evidence;
+- verify that rows without a named contact display an honest searched-not-found label and a usable fallback route when available;
+- reconcile the named-contact count and reachability score with the actual contact fields;
 - spot-check narrative customer fields and translate any avoidable foreign-language analysis into Chinese;
 - confirm that source-original identifiers and target-language outreach remain unchanged;
 - repair clipped or unreadable output;
@@ -160,6 +183,7 @@ Report:
 - qualified, near-match, and excluded counts;
 - top prospects and why they rank highly;
 - named-contact coverage versus company-channel coverage;
+- public contact-search coverage, unresolved companies, and whether Apollo was unavailable, offered, declined, or used with approval;
 - source limitations and unresolved fields;
 - output workbook path.
 

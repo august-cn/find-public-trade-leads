@@ -42,7 +42,7 @@ Write these values in Chinese:
 
 - `brief` narrative values and `research_notes`;
 - `customer_type`, `size_band`, `size_evidence`, `country`, and `product_evidence`;
-- `contact_title`, `contact_status`, `email_type`, and `phone_type`;
+- `contact_title`, `contact_status`, `contact_search_note`, `email_type`, and `phone_type`;
 - `fit_reason`, `risks`, `confidence`, `evidence_boundary`, and `next_step`;
 - `near_match_reason` and excluded `reason`.
 
@@ -85,13 +85,15 @@ Each lead supports:
   "website": "https://example.com",
   "product_evidence": "已核实的产品或品类重合证据",
   "contact_name": "",
-  "contact_title": "",
-  "contact_status": "已公开核实 | 仅二手来源 | 未找到",
+  "contact_title": "采购经理，或建议转交的部门",
+  "contact_status": "已公开核实 | 仅二手来源 | 待核实 | 未找到具名联系人；已提供部门渠道 | 未找到具名联系人；已提供公司渠道 | 公开网页未找到可用联系人",
   "email": "",
   "email_type": "公开个人邮箱 | 部门邮箱 | 公司通用邮箱 | 联系表单 | 未找到",
   "phone": "",
   "phone_type": "直线电话 | 部门电话 | 公司总机 | 未找到",
   "linkedin": "",
+  "contact_source_urls": ["https://example.com/team-or-profile"],
+  "contact_search_note": "中文记录已检查的官网页面、职位关键词、职业网络、PDF或行业来源及结果",
   "fit_reason": "中文匹配推断，不写成采购需求事实",
   "risks": "中文描述不确定性或合作障碍",
   "confidence": "高 | 中 | 低",
@@ -115,6 +117,10 @@ Each lead supports:
 
 Score maxima are 30, 20, 15, 10, 10, 10, and 5.
 
+`contact_status` and `contact_search_note` are required for every qualified lead and near match. When `contact_name` is populated, also require `contact_title` and at least one `contact_source_urls` entry. When no person is found, keep `contact_name` empty in JSON; the workbook builder will display `未找到具名采购联系人` without treating it as a real person.
+
+The workbook builder derives `scores.reachability` from the actual named contact and contact route. It does not trust an inflated input score.
+
 ## `near_matches`
 
 Use the same lead shape. Include `near_match_reason`.
@@ -135,5 +141,6 @@ Each item supports:
 ## Empty data
 
 - Use empty strings or empty arrays for unknown values.
+- Do not use an empty string for `contact_status` or `contact_search_note`.
 - Never use guessed values.
 - Keep URLs as plain text so the workbook remains auditable.

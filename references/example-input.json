@@ -32,14 +32,18 @@
       "country": "波兰",
       "website": "https://example.com",
       "product_evidence": "演示用信息：公开产品目录与目标品类存在重合",
-      "contact_name": "",
-      "contact_title": "采购部",
-      "contact_status": "未找到",
-      "email": "info@example.com",
-      "email_type": "公司通用邮箱",
+      "contact_name": "Anna Example",
+      "contact_title": "采购经理（演示职位）",
+      "contact_status": "已公开核实",
+      "email": "anna@example.com",
+      "email_type": "公开个人邮箱",
       "phone": "+00 000 000 000",
-      "phone_type": "公司总机",
-      "linkedin": "",
+      "phone_type": "直线电话",
+      "linkedin": "https://www.linkedin.com/in/anna-example",
+      "contact_source_urls": [
+        "https://example.com/team"
+      ],
+      "contact_search_note": "演示：已检查官网团队页、联系页和公开职业资料；实际运行时必须替换为真实检索记录。",
       "fit_reason": "推断：其经销渠道可能适合销售定制品牌的配送装备。",
       "risks": "该记录仅用于演示，必须替换为实际调研证据。",
       "confidence": "低",
@@ -58,7 +62,7 @@
         "supply_fit": 8,
         "size_fit": 8,
         "evidence_quality": 3,
-        "reachability": 3
+        "reachability": 5
       }
     },
     {
@@ -73,13 +77,17 @@
       "website": "https://example.org",
       "product_evidence": "演示用产品重合信息",
       "contact_name": "",
-      "contact_title": "",
-      "contact_status": "未找到",
+      "contact_title": "建议转交采购／品类管理团队",
+      "contact_status": "未找到具名联系人；已提供公司渠道",
       "email": "",
       "email_type": "未找到",
       "phone": "",
       "phone_type": "未找到",
       "linkedin": "",
+      "contact_source_urls": [
+        "https://example.org"
+      ],
+      "contact_search_note": "演示：已检查官网团队页、联系页、站内职位关键词和公开职业资料，未找到具名采购联系人。",
       "fit_reason": "推断：其批发渠道可能与目标产品相关。",
       "risks": "该记录仅用于演示，必须替换为实际调研证据。",
       "confidence": "低",

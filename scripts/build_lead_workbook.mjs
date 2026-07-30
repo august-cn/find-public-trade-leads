@@ -38,6 +38,26 @@ function categoryText(value, translations) {
   return translations[text.toLowerCase()] ?? text;
 }
 
+function hasText(value) {
+  return Boolean(asText(value).trim());
+}
+
+function isOneOf(value, choices) {
+  return choices.includes(asText(value).trim().toLowerCase());
+}
+
+function hasNamedContact(lead) {
+  const name = asText(lead?.contact_name).trim();
+  if (!name) return false;
+  return ![
+    "未找到",
+    "未找到具名联系人",
+    "未找到具名采购联系人",
+    "not found",
+    "n/a",
+  ].includes(name.toLowerCase());
+}
+
 const sizeBandZh = {
   micro: "微型",
   small: "小型",
@@ -48,7 +68,11 @@ const sizeBandZh = {
 const contactStatusZh = {
   "verified public": "已公开核实",
   "secondary-source only": "仅二手来源",
-  "not found": "未找到",
+  "pending verification": "待核实",
+  "not found": "公开网页未找到可用联系人",
+  "named contact not found; department route provided": "未找到具名联系人；已提供部门渠道",
+  "named contact not found; company route provided": "未找到具名联系人；已提供公司渠道",
+  "no usable public contact found": "公开网页未找到可用联系人",
 };
 
 const emailTypeZh = {
@@ -72,6 +96,97 @@ const confidenceZh = {
   low: "低",
 };
 
+function normalizedContactStatus(lead) {
+  const supplied = categoryText(lead?.contact_status, contactStatusZh);
+  if (hasNamedContact(lead)) {
+    if (["已公开核实", "仅二手来源", "待核实"].includes(supplied)) return supplied;
+    return "待核实";
+  }
+
+  const emailType = categoryText(lead?.email_type, emailTypeZh);
+  const phoneType = categoryText(lead?.phone_type, phoneTypeZh);
+  if (
+    (hasText(lead?.email) && emailType === "部门邮箱")
+    || (hasText(lead?.phone) && phoneType === "部门电话")
+  ) {
+    return "未找到具名联系人；已提供部门渠道";
+  }
+  if (
+    hasText(lead?.email)
+    || hasText(lead?.phone)
+    || hasText(lead?.website)
+    || emailType === "联系表单"
+  ) {
+    return "未找到具名联系人；已提供公司渠道";
+  }
+  return "公开网页未找到可用联系人";
+}
+
+function displayContactName(lead) {
+  return hasNamedContact(lead) ? asText(lead.contact_name) : "未找到具名采购联系人";
+}
+
+function displayContactTitle(lead) {
+  if (hasText(lead?.contact_title)) return asText(lead.contact_title);
+  return hasNamedContact(lead)
+    ? "待核实具体采购职责"
+    : "建议转交采购／品类／产品管理团队";
+}
+
+function hasAnyContactRoute(lead) {
+  return [
+    lead?.email,
+    lead?.phone,
+    lead?.linkedin,
+    lead?.website,
+  ].some(hasText);
+}
+
+function derivedReachability(lead) {
+  const emailType = categoryText(lead?.email_type, emailTypeZh);
+  const phoneType = categoryText(lead?.phone_type, phoneTypeZh);
+  const status = normalizedContactStatus(lead);
+  const named = hasNamedContact(lead);
+  const directRoute = (
+    hasText(lead?.email)
+    && isOneOf(emailType, ["公开个人邮箱"])
+  ) || (
+    hasText(lead?.phone)
+    && isOneOf(phoneType, ["直线电话"])
+  );
+  const departmentRoute = (
+    hasText(lead?.email)
+    && isOneOf(emailType, ["部门邮箱"])
+  ) || (
+    hasText(lead?.phone)
+    && isOneOf(phoneType, ["部门电话"])
+  );
+  const companyRoute = (
+    hasText(lead?.email)
+    && isOneOf(emailType, ["公司通用邮箱"])
+  ) || (
+    hasText(lead?.phone)
+    && isOneOf(phoneType, ["公司总机"])
+  );
+  const formRoute = (
+    isOneOf(emailType, ["联系表单"])
+    || hasText(lead?.website)
+    || hasText(lead?.linkedin)
+  );
+
+  if (
+    named
+    && status === "已公开核实"
+    && directRoute
+    && sourceText(lead?.contact_source_urls).trim()
+  ) return 5;
+  if (named && ["已公开核实", "仅二手来源"].includes(status) && hasAnyContactRoute(lead)) return 4;
+  if (departmentRoute) return 3;
+  if (companyRoute) return 2;
+  if (formRoute) return 1;
+  return 0;
+}
+
 function requireBrief(brief) {
   const fields = [
     "product",
@@ -91,6 +206,20 @@ function requireBrief(brief) {
 function validateLead(lead, index) {
   if (!asText(lead?.company).trim()) {
     throw new Error(`Lead ${index + 1} is missing company`);
+  }
+  if (!asText(lead?.contact_status).trim()) {
+    throw new Error(`Lead ${index + 1} is missing contact_status`);
+  }
+  if (!asText(lead?.contact_search_note).trim()) {
+    throw new Error(`Lead ${index + 1} is missing contact_search_note`);
+  }
+  if (hasNamedContact(lead)) {
+    if (!asText(lead?.contact_title).trim()) {
+      throw new Error(`Lead ${index + 1} has a named contact but no contact_title`);
+    }
+    if (!sourceText(lead?.contact_source_urls).trim()) {
+      throw new Error(`Lead ${index + 1} has a named contact but no contact_source_urls`);
+    }
   }
   const maxima = {
     product_overlap: 30,
@@ -145,13 +274,15 @@ function setLeadValues(sheet, leads, startRow) {
     ["supply_fit", 10],
     ["size_fit", 10],
     ["evidence_quality", 10],
-    ["reachability", 5],
   ];
   for (let index = 0; index < leads.length; index += 1) {
     const lead = leads[index];
     const row = startRow + index;
-    const scores = scoreFields.map(([field, max]) => clampScore(lead.scores?.[field], max));
-    sheet.getRange(`A${row}:AC${row}`).values = [[
+    const scores = [
+      ...scoreFields.map(([field, max]) => clampScore(lead.scores?.[field], max)),
+      derivedReachability(lead),
+    ];
+    sheet.getRange(`A${row}:AE${row}`).values = [[
       Number(lead.priority ?? index + 1),
       asText(lead.company),
       asText(lead.legal_name),
@@ -162,25 +293,27 @@ function setLeadValues(sheet, leads, startRow) {
       asText(lead.country),
       asText(lead.website),
       asText(lead.product_evidence),
-      asText(lead.contact_name),
-      asText(lead.contact_title),
-      categoryText(lead.contact_status, contactStatusZh),
+      displayContactName(lead),
+      displayContactTitle(lead),
+      normalizedContactStatus(lead),
       asText(lead.email),
       categoryText(lead.email_type, emailTypeZh),
       asText(lead.phone),
       categoryText(lead.phone_type, phoneTypeZh),
       asText(lead.linkedin),
+      sourceText(lead.contact_source_urls),
+      asText(lead.contact_search_note),
       asText(lead.fit_reason),
       asText(lead.risks),
       categoryText(lead.confidence, confidenceZh),
       asDate(lead.verified_date),
       ...scores,
     ]];
-    sheet.getRange(`AD${row}`).formulas = [[`=SUM(W${row}:AC${row})`]];
-    sheet.getRange(`AE${row}`).formulas = [[
-      `=IF(AD${row}>=85,"高优先级",IF(AD${row}>=70,"中优先级","待探索"))`,
+    sheet.getRange(`AF${row}`).formulas = [[`=SUM(Y${row}:AE${row})`]];
+    sheet.getRange(`AG${row}`).formulas = [[
+      `=IF(AF${row}>=85,"高优先级",IF(AF${row}>=70,"中优先级","待探索"))`,
     ]];
-    sheet.getRange(`AF${row}:AH${row}`).values = [[
+    sheet.getRange(`AH${row}:AJ${row}`).values = [[
       sourceText(lead.source_urls),
       asText(lead.evidence_boundary),
       asText(lead.next_step),
@@ -193,22 +326,22 @@ function configureLeadSheet(sheet, leads, tableName) {
     "优先序号", "公司名称", "法定名称", "客户类型", "规模档位", "规模依据",
     "地址（保留原文）", "国家或地区", "公司官网", "产品或品类证据", "联系人", "职位或部门",
     "联系人状态", "邮箱（保留原文）", "邮箱类型", "电话（保留原文）", "电话类型", "LinkedIn",
-    "匹配理由", "风险与疑点", "可信度", "核实日期", "产品重合度（30）",
+    "联系人证据来源", "联系人检索说明", "匹配理由", "风险与疑点", "可信度", "核实日期", "产品重合度（30）",
     "渠道匹配（20）", "合作方式匹配（15）", "供货匹配（10）", "规模匹配（10）",
     "证据质量（10）", "可联系程度（5）", "总分", "分级", "来源链接",
     "证据边界", "下一步建议",
   ]];
   const startRow = 3;
   const endRow = startRow + leads.length;
-  styleTitle(sheet, "A1:AH1", sheet.name);
-  sheet.getRange("A3:AH3").values = headers;
-  styleHeader(sheet.getRange("A3:AH3"));
+  styleTitle(sheet, "A1:AJ1", sheet.name);
+  sheet.getRange("A3:AJ3").values = headers;
+  styleHeader(sheet.getRange("A3:AJ3"));
   setLeadValues(sheet, leads, 4);
   sheet.showGridLines = false;
   sheet.freezePanes.freezeRows(3);
   sheet.freezePanes.freezeColumns(2);
 
-  const body = sheet.getRange(`A4:AH${endRow}`);
+  const body = sheet.getRange(`A4:AJ${endRow}`);
   body.format = {
     font: { size: 10 },
     wrapText: true,
@@ -220,30 +353,30 @@ function configureLeadSheet(sheet, leads, tableName) {
   };
   body.format.rowHeight = 76;
   sheet.getRange(`A4:A${endRow}`).format.horizontalAlignment = "center";
-  sheet.getRange(`W4:AE${endRow}`).format.horizontalAlignment = "center";
-  sheet.getRange(`V4:V${endRow}`).format.numberFormat = "yyyy-mm-dd";
+  sheet.getRange(`Y4:AG${endRow}`).format.horizontalAlignment = "center";
+  sheet.getRange(`X4:X${endRow}`).format.numberFormat = "yyyy-mm-dd";
 
-  sheet.getRange(`AE4:AE${endRow}`).conditionalFormats.add("containsText", {
+  sheet.getRange(`AG4:AG${endRow}`).conditionalFormats.add("containsText", {
     text: "高优先级",
     format: { fill: "#E2F0D9", font: { color: "#375623", bold: true } },
   });
-  sheet.getRange(`AE4:AE${endRow}`).conditionalFormats.add("containsText", {
+  sheet.getRange(`AG4:AG${endRow}`).conditionalFormats.add("containsText", {
     text: "中优先级",
     format: { fill: "#FFF2CC", font: { color: "#7F6000", bold: true } },
   });
-  sheet.getRange(`AE4:AE${endRow}`).conditionalFormats.add("containsText", {
+  sheet.getRange(`AG4:AG${endRow}`).conditionalFormats.add("containsText", {
     text: "待探索",
     format: { fill: "#FCE4D6", font: { color: "#C00000" } },
   });
 
   setWidths(sheet, {
     A: 8, B: 27, C: 28, D: 20, E: 15, F: 30, G: 32, H: 14, I: 30,
-    J: 38, K: 20, L: 25, M: 20, N: 28, O: 20, P: 20, Q: 16, R: 38,
-    S: 38, T: 34, U: 13, V: 14, W: 14, X: 14, Y: 15, Z: 13, AA: 12,
-    AB: 15, AC: 13, AD: 10, AE: 12, AF: 44, AG: 48, AH: 42,
+    J: 38, K: 24, L: 28, M: 28, N: 28, O: 20, P: 20, Q: 16, R: 36,
+    S: 44, T: 52, U: 38, V: 34, W: 13, X: 14, Y: 14, Z: 14, AA: 15,
+    AB: 13, AC: 12, AD: 15, AE: 13, AF: 10, AG: 12, AH: 44, AI: 48, AJ: 42,
   }, endRow);
 
-  const table = sheet.tables.add(`A3:AH${endRow}`, true, tableName);
+  const table = sheet.tables.add(`A3:AJ${endRow}`, true, tableName);
   table.style = "TableStyleMedium2";
   table.showBandedRows = true;
   table.showFilterButton = true;
@@ -311,7 +444,7 @@ guide.getRange("D4").formulas = [[`=COUNTA('合格客户'!B4:B${qualifiedEnd})`]
 guide.getRange("E4").values = [[nearMatches ? data.near_matches.length : 0]];
 guide.getRange("F4").values = [[excluded ? data.excluded.length : 0]];
 guide.getRange("G4").formulas = [[
-  `=COUNTIF('合格客户'!K4:K${qualifiedEnd},"?*")`,
+  `=COUNTIF('合格客户'!M4:M${qualifiedEnd},"已公开核实")+COUNTIF('合格客户'!M4:M${qualifiedEnd},"仅二手来源")+COUNTIF('合格客户'!M4:M${qualifiedEnd},"待核实")`,
 ]];
 guide.getRange("H4").formulas = [[`=D4-G4`]];
 guide.getRange("D4:H4").format = {
@@ -331,7 +464,7 @@ guide.getRange("D6:H8").format = {
 };
 guide.mergeCells("D10:H13");
 guide.getRange("D10").values = [[
-  "联系人规则：只有在公开证据能够支持身份和职责时，才使用具名联系人；否则使用部门邮箱、公司通用邮箱、公开联系表单或公司总机。禁止推测邮箱格式。"
+  "联系人规则：每家公司必须单独检索采购、品类、产品、供应商管理或负责人。只有公开证据支持姓名、现任公司和相关职责时才列为具名联系人；否则明确显示“未找到具名采购联系人”，并记录检索范围、状态及最佳部门或公司转交渠道。禁止推测邮箱格式。"
 ]];
 guide.getRange("D10:H13").format = {
   fill: "#E2F0D9",
@@ -351,14 +484,17 @@ styleHeader(outreach.getRange("A3:G3"));
 for (let index = 0; index < data.leads.length; index += 1) {
   const lead = data.leads[index];
   const row = index + 4;
+  const recipient = hasNamedContact(lead)
+    ? asText(lead.contact_name)
+    : displayContactTitle(lead);
   outreach.getRange(`A${row}:G${row}`).values = [[
     Number(lead.priority ?? index + 1),
     asText(lead.company),
-    asText(lead.contact_name) || asText(lead.contact_title) || "公司团队",
+    recipient,
     asText(lead.email) || asText(lead.website),
     asText(lead.outreach_subject),
     asText(lead.outreach_body),
-    `${categoryText(lead.contact_status, contactStatusZh)} | ${categoryText(lead.email_type, emailTypeZh)}`,
+    `${normalizedContactStatus(lead)} | ${categoryText(lead.email_type, emailTypeZh)} | ${asText(lead.contact_search_note)}`,
   ]];
 }
 const outreachEnd = data.leads.length + 3;
@@ -395,14 +531,14 @@ for (let index = 0; index < data.leads.length; index += 1) {
     asText(lead.next_step),
   ]];
   evidence.getRange(`F${row}:M${row}`).formulas = [[
-    `='合格客户'!W${sourceRow}`,
-    `='合格客户'!X${sourceRow}`,
     `='合格客户'!Y${sourceRow}`,
     `='合格客户'!Z${sourceRow}`,
     `='合格客户'!AA${sourceRow}`,
     `='合格客户'!AB${sourceRow}`,
     `='合格客户'!AC${sourceRow}`,
-    `='合格客户'!AD${sourceRow}&" / "&'合格客户'!AE${sourceRow}`,
+    `='合格客户'!AD${sourceRow}`,
+    `='合格客户'!AE${sourceRow}`,
+    `='合格客户'!AF${sourceRow}&" / "&'合格客户'!AG${sourceRow}`,
   ]];
 }
 const evidenceEnd = data.leads.length + 3;
@@ -458,21 +594,29 @@ if (excluded) {
 }
 
 workbook.comments.addThread(
-  { cell: leadsSheet.getRange("AF3") },
+  { cell: leadsSheet.getRange("AH3") },
   "为便于逐行核查，请保留纯文本来源链接；多个来源用换行分隔。"
 );
 workbook.comments.addThread(
-  { cell: leadsSheet.getRange("S3") },
+  { cell: leadsSheet.getRange("U3") },
   "说明公开证据为何支持潜在匹配。除非来源明确证明，否则不得描述该公司正在采购。"
+);
+workbook.comments.addThread(
+  { cell: leadsSheet.getRange("S3") },
+  "只放能够支持联系人姓名、现任公司或职责的专属来源；不能用公司首页代替联系人证据。"
+);
+workbook.comments.addThread(
+  { cell: leadsSheet.getRange("T3") },
+  "用中文记录已检查的官网页面、职位关键词、职业网络、PDF或行业来源，以及未找到时的检索结论。"
 );
 
 const keyInspect = await workbook.inspect({
   kind: "table",
   sheetId: "合格客户",
-  range: `A3:AH${qualifiedEnd}`,
+  range: `A3:AJ${qualifiedEnd}`,
   include: "values,formulas",
   tableMaxRows: Math.min(data.leads.length + 1, 10),
-  tableMaxCols: 34,
+  tableMaxCols: 36,
   maxChars: 10000,
 });
 console.log(keyInspect.ndjson);
