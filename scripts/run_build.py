@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 
 
@@ -18,6 +19,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--input", required=True, help="Workbook input JSON")
     parser.add_argument("--output", required=True, help="Destination .xlsx")
     parser.add_argument("--preview-dir", required=True, help="Directory for rendered PNG previews")
+    parser.add_argument(
+        "--project-root",
+        required=True,
+        help="Current Codex project root for local cross-batch deduplication history",
+    )
     return parser.parse_args()
 
 
@@ -28,13 +34,17 @@ def main() -> int:
     input_path = Path(args.input).expanduser().resolve()
     output_path = Path(args.output).expanduser().resolve()
     preview_dir = Path(args.preview_dir).expanduser().resolve()
+    project_root = Path(args.project_root).expanduser().resolve()
     builder_source = Path(__file__).with_name("build_lead_workbook.mjs").resolve()
+    history_script = Path(__file__).with_name("lead_history.py").resolve()
 
     for path, label in (
         (node, "Node.js executable"),
         (node_modules, "node_modules directory"),
         (input_path, "input JSON"),
         (builder_source, "workbook builder"),
+        (project_root, "project root"),
+        (history_script, "lead history script"),
     ):
         if not path.exists():
             raise SystemExit(f"{label} not found: {path}")
@@ -59,7 +69,22 @@ def main() -> int:
             str(preview_dir),
         ]
         completed = subprocess.run(command, cwd=temp_dir, check=False)
-        return completed.returncode
+        if completed.returncode != 0:
+            return completed.returncode
+
+    history_command = [
+        os.fspath(Path(sys.executable)),
+        os.fspath(history_script),
+        "--project-root",
+        os.fspath(project_root),
+        "record",
+        "--input",
+        os.fspath(input_path),
+        "--output-workbook",
+        os.fspath(output_path),
+    ]
+    history_completed = subprocess.run(history_command, check=False)
+    return history_completed.returncode
 
 
 if __name__ == "__main__":

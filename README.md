@@ -17,6 +17,7 @@
 - 为每家公司单独补查LinkedIn或当地职业网络，记录准确个人主页、联系人专属来源和检索说明
 - 没有公开个人邮箱时自动给出“需尝试Apollo积分深度背调”提示
 - 自动排除不符合要求的公司并合并重复主体
+- 在同一Codex项目内自动保存已查企业，后续批次无需上传旧Excel即可跨批次查重
 - 使用透明的 100 分模型对客户进行评分和分级
 - 为每家公司生成基于真实公开信息的个性化开发信
 - 导出经过排版和公式检查的 Excel 工作簿
@@ -75,6 +76,22 @@ Agent 会先要求填写以下 7 项信息；信息完整后才开始搜索。
 
 目标客户数量为可选项，默认寻找 20 家。
 
+## 同一项目继续查找更多客户
+
+第一次调查完成后，技能会把合格、待探索和已排除企业的域名、公司名称、市场和批次信息自动写入当前Codex项目的本地历史。以后无需上传旧Excel，只需输入：
+
+```text
+使用 $find-public-trade-leads，沿用上次条件，再找20家新的客户。
+```
+
+技能会自动读取上一次Brief，排除所有已经调查过的企业，并为新结果建立下一批次。用户也可以在同一句话里修改数量或条件，例如：
+
+```text
+沿用上次条件，再找30家新的客户；这次优先法国南部经销商。
+```
+
+历史文件保存在当前项目的 `.find-public-trade-leads/history.json`，并由仓库的 `.gitignore` 排除。GitHub只发布查重代码，不会上传任何用户的客户历史。此功能只在同一个本地Codex项目目录中生效；换项目、换设备、删除历史目录或重新克隆后会重新建立历史。
+
 ## 首次 Apollo 状态选择
 
 首次使用本技能时只提示一次。用户选择后，状态保存在当前设备的Codex用户目录中；不保存Apollo账号、密码、令牌、积分余额或其他凭据。技能没有内置共享Apollo账号，两个“已连接”选项只表示当前用户已经用自己的账号完成连接。换设备、使用不同Codex用户目录或清除本地状态后会重新提示。
@@ -106,7 +123,7 @@ Agent 会先要求填写以下 7 项信息；信息完整后才开始搜索。
 6. 对公司规模、渠道匹配、合作方式、证据质量和真实可联系路径进行评分。
 7. 合并重复公司，将证据不足但可能相关的公司放入“待探索”名单。
 8. 根据每家公司已经核实的事实撰写开发信。
-9. 生成并检查最终 Excel 文件。
+9. 生成并检查最终 Excel 文件，成功后自动写入项目本地历史供下一批查重。
 
 ## 跨国家、跨行业的公开联系人来源
 
@@ -199,6 +216,7 @@ git clone https://github.com/august-cn/find-public-trade-leads.git
 
 ```text
 find-public-trade-leads/
+├── .gitignore
 ├── SKILL.md
 ├── README.md
 ├── LICENSE
@@ -207,12 +225,14 @@ find-public-trade-leads/
 ├── references/
 │   ├── intake-form.md
 │   ├── apollo-preference.md
+│   ├── continuation-search.md
 │   ├── research-workflow.md
 │   ├── data-contract.md
 │   ├── public-contact-playbook.md
 │   └── example-input.json
 └── scripts/
     ├── apollo_preference.py
+    ├── lead_history.py
     ├── run_build.py
     └── build_lead_workbook.mjs
 ```
@@ -225,4 +245,4 @@ find-public-trade-leads/
 
 Find Public Trade Leads is a reusable Codex skill for public-web B2B prospecting. It collects a seven-part product and ideal-customer brief, dynamically maps no-registration public sources for the requested country and industry, discovers and verifies companies, adapts decision-maker roles to each customer type, scores and deduplicates prospects, drafts evidence-based outreach, and exports a polished Excel workbook. Workbook titles, labels, statuses, and research analysis default to Simplified Chinese, while source-original identifiers and target-market outreach remain unchanged.
 
-It works across products and markets without requiring Apollo or another paid sales-intelligence service. Every retained prospect receives a dedicated named-contact search; unresolved contacts are labeled explicitly with the search scope and best fallback route instead of unexplained blank cells. Product fit remains a prospecting hypothesis rather than proof of active purchasing demand.
+It works across products and markets without requiring Apollo or another paid sales-intelligence service. In the same local Codex project, completed batches are recorded in a git-ignored history so a simple “use the previous criteria and find another 20” request automatically excludes every previously qualified, near-match, and excluded company without re-uploading an old workbook. Every retained prospect receives a dedicated named-contact search; unresolved contacts are labeled explicitly with the search scope and best fallback route instead of unexplained blank cells. Product fit remains a prospecting hypothesis rather than proof of active purchasing demand.

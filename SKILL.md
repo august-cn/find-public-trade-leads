@@ -1,6 +1,6 @@
 ---
 name: find-public-trade-leads
-description: Collect a seven-part product and target-customer brief, remember a one-time Apollo availability preference, dynamically map no-registration public sources for the target country and industry, research qualified foreign-trade prospects, adapt the decision-maker role ladder to each customer type, verify public professional profiles and contact evidence, optionally use zero-credit Apollo search or individually approved enrichment, score and deduplicate results, draft personalized outreach, and export a polished Chinese-language Excel workbook. Use when a user wants importers, distributors, wholesalers, brand owners, manufacturers, retailers, project buyers, executives, product or marketing decision-makers, or other B2B prospects for any product and market.
+description: Collect a seven-part product and target-customer brief, remember a one-time Apollo availability preference, persist a git-ignored project-local company history for automatic cross-batch deduplication, continue prior market research from simple requests such as "find more" or "next batch", dynamically map no-registration public sources, verify companies and decision-makers, optionally use zero-credit Apollo search or individually approved enrichment, score results, draft outreach, and export a polished Chinese-language Excel workbook. Use when a user wants new or additional importers, distributors, wholesalers, brand owners, manufacturers, retailers, project buyers, executives, product or marketing decision-makers for any product and market.
 ---
 
 # Find Public Trade Leads
@@ -18,7 +18,17 @@ Read [references/apollo-preference.md](references/apollo-preference.md). Run its
 - Never store credentials. Never treat the credit-enabled mode as permanent permission to spend credits; obtain explicit approval for each exact credit-consuming call.
 - If Apollo is saved as connected but the tool or authentication is unavailable, fall back to public research for the current task and continue without blocking delivery.
 
-## 2. Collect the seven-part brief
+## 2. Load project history and detect continuation
+
+Read [references/continuation-search.md](references/continuation-search.md). Resolve the current Codex project root and load its local history at the start of every run.
+
+- When the user asks to continue, find more, or run the next batch and history exists, reuse the last complete brief automatically. Apply only the changes stated in the current message.
+- Exclude every previously qualified, near-match, and excluded company before selecting the new batch.
+- Do not ask for the prior Excel and do not ask the seven questions again in continuation mode.
+- When no project history exists, continue with the normal seven-part intake.
+- Keep history local and git-ignored. Never commit or publish it.
+
+## 3. Collect the seven-part brief
 
 Read [references/intake-form.md](references/intake-form.md).
 
@@ -38,7 +48,7 @@ If any required field is missing, return only the compact intake form and wait. 
 
 If all seven fields are present, normalize them into the data contract and proceed without reconfirming routine assumptions.
 
-## 3. Build the search brief
+## 4. Build the search brief
 
 Read [references/research-workflow.md](references/research-workflow.md).
 Read [references/public-contact-playbook.md](references/public-contact-playbook.md) before generating market-specific source and contact queries.
@@ -56,7 +66,7 @@ Derive:
 
 Use public web search, official company pages, official catalogs, public registries, trade associations, exhibitor lists, and reputable business directories as the default research layer. Do not require paid enrichment, CRM mutations, or outbound platforms to produce the first useful workbook.
 
-## 4. Discover, verify, and deduplicate
+## 5. Discover, verify, and deduplicate
 
 Search broadly, then verify the final shortlist.
 
@@ -91,9 +101,11 @@ Normalize domains and legal suffixes. Deduplicate by:
 2. normalized legal or trading name plus market;
 3. manual review of branches, subsidiaries, group companies, and marketplace sellers.
 
+Apply these rules both within the current batch and against the project history loaded in section 2. Count historical matches as duplicates skipped; do not recycle them as new qualified or near-match leads.
+
 Exclude companies that violate the user's hard filters. Keep near matches separate when qualified coverage is insufficient.
 
-## 5. Score and select
+## 6. Score and select
 
 Score observable fit:
 
@@ -124,7 +136,7 @@ Use formulas in the workbook for totals and tiers:
 
 Do not inflate weak evidence to fill the requested quota. Report shortfalls visibly.
 
-## 6. Draft outreach
+## 7. Draft outreach
 
 Write one personalized draft per retained company in the market's business language unless the user requests another language.
 
@@ -132,7 +144,7 @@ Ground the opening in a verified company fact. State the sender's product and co
 
 Do not send messages or enroll contacts in campaigns.
 
-## 7. Enforce Chinese workbook language
+## 8. Enforce Chinese workbook language
 
 Use Simplified Chinese for the workbook interface and research analysis by default, even when the target market uses another language.
 
@@ -152,7 +164,7 @@ Translate a contact title or department into Chinese; add the original title in 
 
 Before export, review every narrative field in the input JSON. Translate avoidable foreign-language analysis into Chinese instead of relying only on Chinese column headers.
 
-## 8. Export the workbook
+## 9. Export the workbook
 
 Read [references/data-contract.md](references/data-contract.md).
 
@@ -167,10 +179,13 @@ python3 <skill-dir>/scripts/run_build.py \
   --node-modules <bundled-node_modules> \
   --input <lead-workbook-input.json> \
   --output <output.xlsx> \
-  --preview-dir <preview-directory>
+  --preview-dir <preview-directory> \
+  --project-root <current-project-root>
 ```
 
 Use the exact executable and dependency paths returned by the workspace dependency loader. Do not install packages.
+
+After a successful workbook build, `run_build.py` records the completed batch in the current project's git-ignored history automatically. Confirm that history recording succeeded before handoff.
 
 The workbook must contain:
 
@@ -199,7 +214,7 @@ After generation:
 - repair clipped or unreadable output;
 - return only the final `.xlsx`, not builders, JSON, or preview files.
 
-## 9. Handoff
+## 10. Handoff
 
 Report:
 
@@ -207,6 +222,7 @@ Report:
 - top prospects and why they rank highly;
 - named-contact coverage versus company-channel coverage;
 - public contact-search and professional-profile coverage, unresolved companies, missing personal-email prompts, the saved Apollo mode, and whether free search or individually approved enrichment was used;
+- batch ID, historical company count, and duplicates skipped;
 - source limitations and unresolved fields;
 - output workbook path.
 

@@ -1,4 +1,4 @@
 interface:
   display_name: "Public-Web Trade Leads"
-  short_description: "记住Apollo模式并查找外贸客户、决策人、导出Excel"
-  default_prompt: "使用 $find-public-trade-leads；首次运行先让我选择并记住Apollo状态，以后按已保存模式查找客户和决策人、核实职业主页并导出中文Excel，任何耗分调用仍须逐次说明并取得批准。"
+  short_description: "自动跨批次查重并查找外贸客户、决策人、导出Excel"
+  default_prompt: "使用 $find-public-trade-leads 查找客户并自动记录项目历史；以后我只需说沿用上次条件再找一批，技能就会排除所有已查企业，Apollo耗分调用仍须逐次批准。"

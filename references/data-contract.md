@@ -35,8 +35,15 @@ Optional:
 - `outreach_language` string
 - `apollo_mode` string: `public_only`, `connected_free`, or `credit_per_call`
 - `apollo_usage` string: `not_available`, `public_only`, `free_search_used`, `paid_declined`, `paid_approved_used`, or `paid_available_not_needed`
+- `research_mode` string: `initial` or `continuation`
+- `batch_id` string from the project-history context, such as `batch-0002`
+- `previous_batch_id` string, empty for the first batch
+- `history_company_count` number loaded before the current search
+- `duplicates_skipped_count` number of historical candidates omitted from this batch
 
 Copy the currently resolved saved mode into `brief.apollo_mode`. Use `brief.apollo_usage` to record what actually happened in this research run. A `credit_per_call` preference alone does not mean credits were used.
+
+Copy the project-local continuation context into the five history fields. These values make the workbook auditable; the actual deduplication state remains in the git-ignored project history rather than inside GitHub.
 
 ## Workbook language policy
 

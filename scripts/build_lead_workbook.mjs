@@ -120,6 +120,12 @@ function apolloModeText(brief) {
   return usageText ? `${modeText}\n执行结果：${usageText}` : modeText;
 }
 
+function researchModeText(brief) {
+  return asText(brief?.research_mode).trim() === "continuation"
+    ? "追加搜索：沿用项目历史并排除已查企业"
+    : "首次搜索：建立项目历史";
+}
+
 const publicSourceLaneLabels = {
   official_company: "官网",
   indexed_documents: "索引页面与文档",
@@ -492,7 +498,7 @@ workbook.comments.setSelf({
 
 styleTitle(guide, "A1:H1", "公开网页外贸客户开发报告");
 guide.showGridLines = false;
-guide.getRange("A3:B14").values = [
+guide.getRange("A3:B19").values = [
   ["项目", "内容"],
   ["产品", asText(data.brief.product)],
   ["目标市场", asText(data.brief.target_market)],
@@ -504,15 +510,20 @@ guide.getRange("A3:B14").values = [
   ["目标客户数量", Number(data.brief.target_count ?? 20)],
   ["产品资料来源", sourceText(data.brief.product_sources)],
   ["Apollo模式", apolloModeText(data.brief)],
+  ["调查模式", researchModeText(data.brief)],
+  ["当前批次", asText(data.brief.batch_id) || "未记录"],
+  ["上一批次", asText(data.brief.previous_batch_id) || "无"],
+  ["历史企业数", Number(data.brief.history_company_count ?? 0)],
+  ["重复跳过数", Number(data.brief.duplicates_skipped_count ?? 0)],
   ["研究说明", asText(data.brief.research_notes)],
 ];
 styleHeader(guide.getRange("A3:B3"));
-guide.getRange("A4:B14").format = {
+guide.getRange("A4:B19").format = {
   wrapText: true,
   verticalAlignment: "top",
   borders: { insideHorizontal: { style: "thin", color: "#D9E2F3" } },
 };
-guide.getRange("A4:A14").format = { fill: "#D9EAF7", font: { bold: true, color: "#17365D" } };
+guide.getRange("A4:A19").format = { fill: "#D9EAF7", font: { bold: true, color: "#17365D" } };
 guide.getRange("D3:H3").values = [[
   "合格客户", "待探索客户", "已排除", "具名联系人", "公司公共渠道",
 ]];
@@ -550,7 +561,7 @@ guide.getRange("D10:H13").format = {
   wrapText: true,
   verticalAlignment: "center",
 };
-setWidths(guide, { A: 23, B: 66, C: 4, D: 17, E: 17, F: 15, G: 18, H: 20 }, 14);
+setWidths(guide, { A: 23, B: 66, C: 4, D: 17, E: 17, F: 15, G: 18, H: 20 }, 19);
 
 configureLeadSheet(leadsSheet, data.leads, "QualifiedLeadTable");
 

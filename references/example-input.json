@@ -12,7 +12,12 @@
     "research_notes": "仅为演示数据，实际运行时必须替换为经过公开来源核实的信息",
     "outreach_language": "波兰语",
     "apollo_mode": "public_only",
-    "apollo_usage": "public_only"
+    "apollo_usage": "public_only",
+    "research_mode": "initial",
+    "batch_id": "batch-0001",
+    "previous_batch_id": "",
+    "history_company_count": 0,
+    "duplicates_skipped_count": 0
   },
   "sender": {
     "name": "外贸经理",
