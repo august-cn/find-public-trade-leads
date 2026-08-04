@@ -33,6 +33,10 @@ Optional:
 - `product_sources` array of URLs or uploaded file names
 - `research_notes` string
 - `outreach_language` string
+- `apollo_mode` string: `public_only`, `connected_free`, or `credit_per_call`
+- `apollo_usage` string: `not_available`, `public_only`, `free_search_used`, `paid_declined`, `paid_approved_used`, or `paid_available_not_needed`
+
+Copy the currently resolved saved mode into `brief.apollo_mode`. Use `brief.apollo_usage` to record what actually happened in this research run. A `credit_per_call` preference alone does not mean credits were used.
 
 ## Workbook language policy
 

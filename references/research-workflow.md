@@ -106,14 +106,14 @@ Use these prompt patterns:
 
 ### Optional Apollo second pass
 
-Public web research remains the default and must be completed first. If a named contact or public personal email remains missing, retain the row-level Apollo deep-research prompt and offer Apollo installation or connection once as an optional enrichment pass.
+Resolve the saved choice in [apollo-preference.md](apollo-preference.md) before research. Public web research remains the first pass in every mode.
 
-- State that Apollo may require a paid plan or consume credits.
-- Do not install, connect, or spend credits without user approval.
-- If Apollo is not installed, use the available plugin installation prompt rather than giving manual token or credential instructions.
-- If the user declines, Apollo is unavailable, or no result is returned, continue with the public-web workbook and preserve the unresolved status.
-- If the user has already prohibited registration, plugins, or paid enrichment, do not offer installation again. Preserve the row-level prompt for future optional use, but mark enrichment as declined or unavailable in the handoff.
-- Verify any Apollo contact against company identity and role; label its provenance and do not merge conflicting people silently.
+- `public_only`: never call, install, connect, or register Apollo. Preserve unresolved row-level prompts and export normally.
+- `connected_free`: use only People Search, and only when current Apollo documentation explicitly marks that exact action zero-credit. It may supplement a name, title, current company, or professional profile, but does not provide full email or phone details. Never call Contacts Search, Company Search, enrichment, phone retrieval, waterfall enrichment, record-writing tools, or a tool with unknown credit cost.
+- `credit_per_call`: complete public and zero-credit passes first. Before every credit-consuming action, disclose the action, record count, requested data, known or maximum estimated credit effect, and phone/waterfall involvement; proceed only after explicit approval for that exact call.
+- If a connected mode is saved but Apollo is unavailable or authentication fails, fall back to public research for this task and record the mismatch. Do not silently change the saved choice.
+- Verify any Apollo contact against company identity and role; label provenance and do not merge conflicting people silently.
+- If the user declines a specific enrichment call or Apollo returns no useful result, continue with the best public/free workbook and preserve the unresolved status.
 
 ## Size evidence
 

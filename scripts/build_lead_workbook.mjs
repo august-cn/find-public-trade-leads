@@ -97,6 +97,29 @@ const confidenceZh = {
   low: "低",
 };
 
+const apolloModeZh = {
+  public_only: "未注册、未安装、未连接或不可用：仅公开网页",
+  connected_free: "已连接，但不使用积分：仅零积分搜索",
+  credit_per_call: "已连接：允许逐次审批积分",
+};
+
+const apolloUsageZh = {
+  not_available: "本次不可用，已回退公开网页",
+  public_only: "本次仅使用公开网页",
+  free_search_used: "本次已使用零积分搜索",
+  paid_declined: "本次未批准或拒绝耗分增强",
+  paid_approved_used: "本次已逐次批准并使用耗分增强",
+  paid_available_not_needed: "本次可申请耗分增强，但无需使用",
+};
+
+function apolloModeText(brief) {
+  const mode = asText(brief?.apollo_mode).trim();
+  const usage = asText(brief?.apollo_usage).trim();
+  const modeText = apolloModeZh[mode] ?? (mode || "未记录");
+  const usageText = apolloUsageZh[usage] ?? usage;
+  return usageText ? `${modeText}\n执行结果：${usageText}` : modeText;
+}
+
 const publicSourceLaneLabels = {
   official_company: "官网",
   indexed_documents: "索引页面与文档",
@@ -469,7 +492,7 @@ workbook.comments.setSelf({
 
 styleTitle(guide, "A1:H1", "公开网页外贸客户开发报告");
 guide.showGridLines = false;
-guide.getRange("A3:B13").values = [
+guide.getRange("A3:B14").values = [
   ["项目", "内容"],
   ["产品", asText(data.brief.product)],
   ["目标市场", asText(data.brief.target_market)],
@@ -480,15 +503,16 @@ guide.getRange("A3:B13").values = [
   ["排除条件", asText(data.brief.exclusions)],
   ["目标客户数量", Number(data.brief.target_count ?? 20)],
   ["产品资料来源", sourceText(data.brief.product_sources)],
+  ["Apollo模式", apolloModeText(data.brief)],
   ["研究说明", asText(data.brief.research_notes)],
 ];
 styleHeader(guide.getRange("A3:B3"));
-guide.getRange("A4:B13").format = {
+guide.getRange("A4:B14").format = {
   wrapText: true,
   verticalAlignment: "top",
   borders: { insideHorizontal: { style: "thin", color: "#D9E2F3" } },
 };
-guide.getRange("A4:A13").format = { fill: "#D9EAF7", font: { bold: true, color: "#17365D" } };
+guide.getRange("A4:A14").format = { fill: "#D9EAF7", font: { bold: true, color: "#17365D" } };
 guide.getRange("D3:H3").values = [[
   "合格客户", "待探索客户", "已排除", "具名联系人", "公司公共渠道",
 ]];
@@ -526,7 +550,7 @@ guide.getRange("D10:H13").format = {
   wrapText: true,
   verticalAlignment: "center",
 };
-setWidths(guide, { A: 23, B: 66, C: 4, D: 17, E: 17, F: 15, G: 18, H: 20 }, 13);
+setWidths(guide, { A: 23, B: 66, C: 4, D: 17, E: 17, F: 15, G: 18, H: 20 }, 14);
 
 configureLeadSheet(leadsSheet, data.leads, "QualifiedLeadTable");
 

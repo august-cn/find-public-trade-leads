@@ -1,13 +1,24 @@
 ---
 name: find-public-trade-leads
-description: Collect a seven-part product and target-customer brief, dynamically map no-registration public sources for the target country and industry, research qualified foreign-trade prospects, adapt the decision-maker role ladder to each customer type, verify public professional profiles and contact evidence, flag missing personal emails for optional Apollo credit-based deep research, score and deduplicate results, draft personalized outreach, and export a polished Chinese-language Excel workbook. Use when a user wants importers, distributors, wholesalers, brand owners, manufacturers, retailers, project buyers, executives, product or marketing decision-makers, or other B2B prospects for any product and market.
+description: Collect a seven-part product and target-customer brief, remember a one-time Apollo availability preference, dynamically map no-registration public sources for the target country and industry, research qualified foreign-trade prospects, adapt the decision-maker role ladder to each customer type, verify public professional profiles and contact evidence, optionally use zero-credit Apollo search or individually approved enrichment, score and deduplicate results, draft personalized outreach, and export a polished Chinese-language Excel workbook. Use when a user wants importers, distributors, wholesalers, brand owners, manufacturers, retailers, project buyers, executives, product or marketing decision-makers, or other B2B prospects for any product and market.
 ---
 
 # Find Public Trade Leads
 
-Build a verified prospect workbook from a product brief. Use public web evidence only. Treat product fit as a prospecting hypothesis, never as proof of current purchasing demand.
+Build a verified prospect workbook from a product brief. Use public web evidence as the required first layer; use Apollo only under the saved mode and approval rules below. Treat product fit as a prospecting hypothesis, never as proof of current purchasing demand.
 
-## 1. Collect the seven-part brief
+## 1. Resolve the saved Apollo mode
+
+Read [references/apollo-preference.md](references/apollo-preference.md). Run its preference script at the start of every invocation.
+
+- If no saved choice exists, explain all three modes and ask the user to choose once before starting research.
+- Save the answer, then continue the user's original task without asking for routine reconfirmation.
+- If a saved choice exists, use it without asking again.
+- If the user explicitly changes or forgets the choice, update or clear it immediately and route the current task through the new mode.
+- Never store credentials. Never treat the credit-enabled mode as permanent permission to spend credits; obtain explicit approval for each exact credit-consuming call.
+- If Apollo is saved as connected but the tool or authentication is unavailable, fall back to public research for the current task and continue without blocking delivery.
+
+## 2. Collect the seven-part brief
 
 Read [references/intake-form.md](references/intake-form.md).
 
@@ -27,7 +38,7 @@ If any required field is missing, return only the compact intake form and wait. 
 
 If all seven fields are present, normalize them into the data contract and proceed without reconfirming routine assumptions.
 
-## 2. Build the search brief
+## 3. Build the search brief
 
 Read [references/research-workflow.md](references/research-workflow.md).
 Read [references/public-contact-playbook.md](references/public-contact-playbook.md) before generating market-specific source and contact queries.
@@ -45,7 +56,7 @@ Derive:
 
 Use public web search, official company pages, official catalogs, public registries, trade associations, exhibitor lists, and reputable business directories as the default research layer. Do not require paid enrichment, CRM mutations, or outbound platforms to produce the first useful workbook.
 
-## 3. Discover, verify, and deduplicate
+## 4. Discover, verify, and deduplicate
 
 Search broadly, then verify the final shortlist.
 
@@ -62,7 +73,7 @@ For every retained company:
 - run and record the eight public source lanes: official company pages; indexed pages and public documents; official registries and regulators; associations and chambers; trade fairs and speakers; public procurement and awards when relevant; public commercial signals; and public professional profiles;
 - prefer official sources for final claims;
 - use directories and search snippets only as discovery or clearly labeled secondary evidence;
-- show `未找到可核实具名联系人` instead of an empty contact-name cell only after procurement, executive, product, and marketing role searches are exhausted;
+- show `未找到可核实具名联系人` instead of an empty contact-name cell only after all role families applicable to that customer type are exhausted;
 - never guess a person's name, title, email pattern, professional-profile URL, phone, purchasing activity, certifications, revenue, or employee count;
 - label named contacts as `已公开核实`, `仅二手来源`, or `待核实`;
 - when no named decision-maker is verifiable, label the result as `未找到具名联系人；已提供部门渠道`, `未找到具名联系人；已提供公司渠道`, or `公开网页未找到可用联系人`;
@@ -72,7 +83,7 @@ For every retained company:
 
 Use only public pages that do not require the user to register, install an extension, provide credentials, or bypass access controls. Skip login walls, paid gates, and sources whose terms prohibit the intended automated access. Do not make any named platform, registry, trade fair, or country-specific source a universal dependency.
 
-Measure named-contact and public-personal-email coverage before drafting outreach. If a named contact or personal email is still missing after the public search pass, preserve the best public route and write the Apollo deep-research prompt in that row. Offer Apollo as an optional second pass when it could materially improve coverage. Explain that Apollo may require a paid plan or consume credits. Do not imply that enrichment is free, and do not install, connect, or spend credits without user approval.
+Measure named-contact and public-personal-email coverage before drafting outreach. If a named contact or personal email is still missing after the public search pass, preserve the best public route and write the Apollo deep-research prompt in that row. Follow the saved Apollo mode: never call Apollo in `public_only`; use only actions that current official documentation marks zero-credit in `connected_free`; in `credit_per_call`, finish public and free passes first and request exact-call approval before enrichment. Do not install, register, connect, or spend credits merely because information is missing.
 
 Normalize domains and legal suffixes. Deduplicate by:
 
@@ -82,7 +93,7 @@ Normalize domains and legal suffixes. Deduplicate by:
 
 Exclude companies that violate the user's hard filters. Keep near matches separate when qualified coverage is insufficient.
 
-## 4. Score and select
+## 5. Score and select
 
 Score observable fit:
 
@@ -113,7 +124,7 @@ Use formulas in the workbook for totals and tiers:
 
 Do not inflate weak evidence to fill the requested quota. Report shortfalls visibly.
 
-## 5. Draft outreach
+## 6. Draft outreach
 
 Write one personalized draft per retained company in the market's business language unless the user requests another language.
 
@@ -121,7 +132,7 @@ Ground the opening in a verified company fact. State the sender's product and co
 
 Do not send messages or enroll contacts in campaigns.
 
-## 6. Enforce Chinese workbook language
+## 7. Enforce Chinese workbook language
 
 Use Simplified Chinese for the workbook interface and research analysis by default, even when the target market uses another language.
 
@@ -141,7 +152,7 @@ Translate a contact title or department into Chinese; add the original title in 
 
 Before export, review every narrative field in the input JSON. Translate avoidable foreign-language analysis into Chinese instead of relying only on Chinese column headers.
 
-## 7. Export the workbook
+## 8. Export the workbook
 
 Read [references/data-contract.md](references/data-contract.md).
 
@@ -188,14 +199,14 @@ After generation:
 - repair clipped or unreadable output;
 - return only the final `.xlsx`, not builders, JSON, or preview files.
 
-## 8. Handoff
+## 9. Handoff
 
 Report:
 
 - qualified, near-match, and excluded counts;
 - top prospects and why they rank highly;
 - named-contact coverage versus company-channel coverage;
-- public contact-search and professional-profile coverage, unresolved companies, missing personal-email prompts, and whether Apollo was unavailable, offered, declined, or used with approval;
+- public contact-search and professional-profile coverage, unresolved companies, missing personal-email prompts, the saved Apollo mode, and whether free search or individually approved enrichment was used;
 - source limitations and unresolved fields;
 - output workbook path.
 

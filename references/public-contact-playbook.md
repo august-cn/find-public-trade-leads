@@ -151,7 +151,7 @@ Never:
 
 Complete the public workflow first. Preserve the best supported person and public route even when a personal email is missing.
 
-Use Apollo or another authenticated enrichment service only as an optional second pass after explicit user approval. If no enrichment tool is installed, connected, available, or approved, export the public-web workbook normally. Do not block delivery.
+Apply the saved mode in [apollo-preference.md](apollo-preference.md). Use Apollo People Search only in a connected mode and only while it is officially zero-credit. Use enrichment only in `credit_per_call` after explicit approval for the exact credit-consuming call. If no enrichment tool is installed, connected, available, or approved, export the public-web workbook normally. Do not block delivery.
 
 If the user has already prohibited registration, plugin installation, paid tools, or enrichment, do not offer installation again during the same task. Preserve the row-level deep-research prompt for future use and record the service as declined or unavailable.
 
