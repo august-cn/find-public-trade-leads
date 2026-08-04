@@ -1,4 +1,4 @@
 interface:
   display_name: "Public-Web Trade Leads"
-  short_description: "查找并核实外贸客户、采购联系人，导出中文 Excel 工作簿"
-  default_prompt: "使用 $find-public-trade-leads 收集我的七项产品与客户要求，通过公开来源寻找潜在客户，并为每家公司专项搜索和核实采购、品类或产品负责人。导出中文 Excel；找不到具名联系人时必须写明检索状态、检索范围和可转交渠道，不能留空。公开搜索覆盖不足时，可提示我选择是否安装或连接 Apollo。"
+  short_description: "跨国家和行业查找外贸客户、决策人并导出中文Excel"
+  default_prompt: "使用 $find-public-trade-leads 收集我的七项要求，按目标国家、语言、行业和客户类型动态发现免注册公开来源与决策角色，核实联系人和职业主页并导出中文Excel；公开来源不足时保留最佳渠道，未经确认不得使用Apollo积分。"

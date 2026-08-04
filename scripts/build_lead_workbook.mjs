@@ -53,6 +53,7 @@ function hasNamedContact(lead) {
     "未找到",
     "未找到具名联系人",
     "未找到具名采购联系人",
+    "未找到可核实具名联系人",
     "not found",
     "n/a",
   ].includes(name.toLowerCase());
@@ -96,6 +97,34 @@ const confidenceZh = {
   low: "低",
 };
 
+const publicSourceLaneLabels = {
+  official_company: "官网",
+  indexed_documents: "索引页面与文档",
+  registries_regulators: "登记监管",
+  associations_chambers: "协会商会",
+  events_speakers: "展会会议",
+  procurement_awards: "采购与授标",
+  commercial_signals: "商业信号",
+  professional_profiles: "职业资料",
+};
+
+function publicSourceLaneSummary(lead) {
+  const results = lead?.public_source_lane_results;
+  if (!results || typeof results !== "object" || Array.isArray(results)) return "";
+  const entries = Object.entries(publicSourceLaneLabels)
+    .map(([key, label]) => {
+      const value = asText(results[key]).trim();
+      return value ? `${label}=${value}` : `${label}=未记录`;
+    });
+  return `八类来源：${entries.join("；")}`;
+}
+
+function contactSearchNote(lead) {
+  return [asText(lead?.contact_search_note).trim(), publicSourceLaneSummary(lead)]
+    .filter(Boolean)
+    .join("\n");
+}
+
 function normalizedContactStatus(lead) {
   const supplied = categoryText(lead?.contact_status, contactStatusZh);
   if (hasNamedContact(lead)) {
@@ -123,14 +152,14 @@ function normalizedContactStatus(lead) {
 }
 
 function displayContactName(lead) {
-  return hasNamedContact(lead) ? asText(lead.contact_name) : "未找到具名采购联系人";
+  return hasNamedContact(lead) ? asText(lead.contact_name) : "未找到可核实具名联系人";
 }
 
 function displayContactTitle(lead) {
   if (hasText(lead?.contact_title)) return asText(lead.contact_title);
   return hasNamedContact(lead)
     ? "待核实具体采购职责"
-    : "建议转交采购／品类／产品管理团队";
+    : "建议转交采购／管理层／产品／市场团队";
 }
 
 function hasAnyContactRoute(lead) {
@@ -140,6 +169,29 @@ function hasAnyContactRoute(lead) {
     lead?.linkedin,
     lead?.website,
   ].some(hasText);
+}
+
+function hasPublicPersonalEmail(lead) {
+  const emailType = categoryText(lead?.email_type, emailTypeZh);
+  return hasText(lead?.email) && emailType === "公开个人邮箱";
+}
+
+function professionalProfileUrl(lead) {
+  return asText(lead?.professional_profile_url) || asText(lead?.linkedin);
+}
+
+function deepResearchPrompt(lead) {
+  if (hasPublicPersonalEmail(lead)) return "";
+  const supplied = asText(lead?.apollo_deep_research_prompt).trim();
+  if (supplied) {
+    return supplied.startsWith("需尝试Apollo积分深度背调")
+      ? supplied
+      : `需尝试Apollo积分深度背调：${supplied}`;
+  }
+  if (hasNamedContact(lead)) {
+    return `需尝试Apollo积分深度背调：使用联系人“${asText(lead.contact_name)}”、公司域名和公开职业主页进行People Enrichment，补全并复核商务邮箱；调用前确认积分成本。`;
+  }
+  return "需尝试Apollo积分深度背调：使用公司域名、客户类型和已经搜索的当地语言角色词继续查找最高优先决策人，再补全并复核商务邮箱；调用前确认积分成本。";
 }
 
 function derivedReachability(lead) {
@@ -300,9 +352,9 @@ function setLeadValues(sheet, leads, startRow) {
       categoryText(lead.email_type, emailTypeZh),
       asText(lead.phone),
       categoryText(lead.phone_type, phoneTypeZh),
-      asText(lead.linkedin),
+      professionalProfileUrl(lead),
       sourceText(lead.contact_source_urls),
-      asText(lead.contact_search_note),
+      contactSearchNote(lead),
       asText(lead.fit_reason),
       asText(lead.risks),
       categoryText(lead.confidence, confidenceZh),
@@ -313,10 +365,11 @@ function setLeadValues(sheet, leads, startRow) {
     sheet.getRange(`AG${row}`).formulas = [[
       `=IF(AF${row}>=85,"高优先级",IF(AF${row}>=70,"中优先级","待探索"))`,
     ]];
-    sheet.getRange(`AH${row}:AJ${row}`).values = [[
+    sheet.getRange(`AH${row}:AK${row}`).values = [[
       sourceText(lead.source_urls),
       asText(lead.evidence_boundary),
       asText(lead.next_step),
+      deepResearchPrompt(lead),
     ]];
   }
 }
@@ -325,23 +378,23 @@ function configureLeadSheet(sheet, leads, tableName) {
   const headers = [[
     "优先序号", "公司名称", "法定名称", "客户类型", "规模档位", "规模依据",
     "地址（保留原文）", "国家或地区", "公司官网", "产品或品类证据", "联系人", "职位或部门",
-    "联系人状态", "邮箱（保留原文）", "邮箱类型", "电话（保留原文）", "电话类型", "LinkedIn",
+    "联系人状态", "邮箱（保留原文）", "邮箱类型", "电话（保留原文）", "电话类型", "公开职业主页（保留原文）",
     "联系人证据来源", "联系人检索说明", "匹配理由", "风险与疑点", "可信度", "核实日期", "产品重合度（30）",
     "渠道匹配（20）", "合作方式匹配（15）", "供货匹配（10）", "规模匹配（10）",
     "证据质量（10）", "可联系程度（5）", "总分", "分级", "来源链接",
-    "证据边界", "下一步建议",
+    "证据边界", "下一步建议", "深度背调提示",
   ]];
   const startRow = 3;
   const endRow = startRow + leads.length;
-  styleTitle(sheet, "A1:AJ1", sheet.name);
-  sheet.getRange("A3:AJ3").values = headers;
-  styleHeader(sheet.getRange("A3:AJ3"));
+  styleTitle(sheet, "A1:AK1", sheet.name);
+  sheet.getRange("A3:AK3").values = headers;
+  styleHeader(sheet.getRange("A3:AK3"));
   setLeadValues(sheet, leads, 4);
   sheet.showGridLines = false;
   sheet.freezePanes.freezeRows(3);
   sheet.freezePanes.freezeColumns(2);
 
-  const body = sheet.getRange(`A4:AJ${endRow}`);
+  const body = sheet.getRange(`A4:AK${endRow}`);
   body.format = {
     font: { size: 10 },
     wrapText: true,
@@ -351,7 +404,7 @@ function configureLeadSheet(sheet, leads, tableName) {
       bottom: { style: "thin", color: "#D9E2F3" },
     },
   };
-  body.format.rowHeight = 76;
+  body.format.rowHeight = 112;
   sheet.getRange(`A4:A${endRow}`).format.horizontalAlignment = "center";
   sheet.getRange(`Y4:AG${endRow}`).format.horizontalAlignment = "center";
   sheet.getRange(`X4:X${endRow}`).format.numberFormat = "yyyy-mm-dd";
@@ -374,9 +427,10 @@ function configureLeadSheet(sheet, leads, tableName) {
     J: 38, K: 24, L: 28, M: 28, N: 28, O: 20, P: 20, Q: 16, R: 36,
     S: 44, T: 52, U: 38, V: 34, W: 13, X: 14, Y: 14, Z: 14, AA: 15,
     AB: 13, AC: 12, AD: 15, AE: 13, AF: 10, AG: 12, AH: 44, AI: 48, AJ: 42,
+    AK: 48,
   }, endRow);
 
-  const table = sheet.tables.add(`A3:AJ${endRow}`, true, tableName);
+  const table = sheet.tables.add(`A3:AK${endRow}`, true, tableName);
   table.style = "TableStyleMedium2";
   table.showBandedRows = true;
   table.showFilterButton = true;
@@ -464,7 +518,7 @@ guide.getRange("D6:H8").format = {
 };
 guide.mergeCells("D10:H13");
 guide.getRange("D10").values = [[
-  "联系人规则：每家公司必须单独检索采购、品类、产品、供应商管理或负责人。只有公开证据支持姓名、现任公司和相关职责时才列为具名联系人；否则明确显示“未找到具名采购联系人”，并记录检索范围、状态及最佳部门或公司转交渠道。禁止推测邮箱格式。"
+  "联系人规则：根据国家、语言、行业和客户类型动态生成角色顺序；逐家公司检查官网、公开文档、登记监管、协会商会、展会会议、相关采购公告、商业信号及公开职业资料八类来源。只有证据支持姓名、现任公司和相关职责时才列为具名联系人；不得要求注册或绕过访问限制，不得推测邮箱；缺少公开个人邮箱时标记“需尝试Apollo积分深度背调”。"
 ]];
 guide.getRange("D10:H13").format = {
   fill: "#E2F0D9",
@@ -494,7 +548,7 @@ for (let index = 0; index < data.leads.length; index += 1) {
     asText(lead.email) || asText(lead.website),
     asText(lead.outreach_subject),
     asText(lead.outreach_body),
-    `${normalizedContactStatus(lead)} | ${categoryText(lead.email_type, emailTypeZh)} | ${asText(lead.contact_search_note)}`,
+    `${normalizedContactStatus(lead)} | ${categoryText(lead.email_type, emailTypeZh)} | ${contactSearchNote(lead)} | ${deepResearchPrompt(lead)}`,
   ]];
 }
 const outreachEnd = data.leads.length + 3;
@@ -503,7 +557,7 @@ outreach.getRange(`A4:G${outreachEnd}`).format = {
   verticalAlignment: "top",
   borders: { insideHorizontal: { style: "thin", color: "#D9E2F3" } },
 };
-outreach.getRange(`A4:G${outreachEnd}`).format.rowHeight = 150;
+outreach.getRange(`A4:G${outreachEnd}`).format.rowHeight = 180;
 outreach.showGridLines = false;
 outreach.freezePanes.freezeRows(3);
 setWidths(outreach, { A: 8, B: 27, C: 23, D: 30, E: 42, F: 92, G: 28 }, outreachEnd);
@@ -607,16 +661,20 @@ workbook.comments.addThread(
 );
 workbook.comments.addThread(
   { cell: leadsSheet.getRange("T3") },
-  "用中文记录已检查的官网页面、职位关键词、职业网络、PDF或行业来源，以及未找到时的检索结论。"
+  "用中文记录客户类型对应的角色阶梯，以及官网、公开文档、登记监管、协会商会、展会会议、相关采购公告、商业信号和公开职业资料八类来源的结果或访问限制。"
+);
+workbook.comments.addThread(
+  { cell: leadsSheet.getRange("AK3") },
+  "没有公开个人邮箱时自动给出Apollo积分深度背调提示；任何积分调用都必须先取得用户确认。"
 );
 
 const keyInspect = await workbook.inspect({
   kind: "table",
   sheetId: "合格客户",
-  range: `A3:AJ${qualifiedEnd}`,
+  range: `A3:AK${qualifiedEnd}`,
   include: "values,formulas",
   tableMaxRows: Math.min(data.leads.length + 1, 10),
-  tableMaxCols: 36,
+  tableMaxCols: 37,
   maxChars: 10000,
 });
 console.log(keyInspect.ndjson);

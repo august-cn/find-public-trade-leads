@@ -91,9 +91,22 @@ Each lead supports:
   "email_type": "公开个人邮箱 | 部门邮箱 | 公司通用邮箱 | 联系表单 | 未找到",
   "phone": "",
   "phone_type": "直线电话 | 部门电话 | 公司总机 | 未找到",
+  "professional_profile_url": "",
+  "professional_network": "",
   "linkedin": "",
+  "apollo_deep_research_prompt": "需尝试Apollo积分深度背调：...",
   "contact_source_urls": ["https://example.com/team-or-profile"],
-  "contact_search_note": "中文记录已检查的官网页面、职位关键词、职业网络、PDF或行业来源及结果",
+  "public_source_lane_results": {
+    "official_company": "已检查：...",
+    "indexed_documents": "已检查：...",
+    "registries_regulators": "已检查 / 不适用 / 访问限制：...",
+    "associations_chambers": "已检查 / 不适用 / 访问限制：...",
+    "events_speakers": "已检查 / 不适用 / 访问限制：...",
+    "procurement_awards": "已检查 / 不适用 / 访问限制：...",
+    "commercial_signals": "已检查 / 不适用 / 访问限制：...",
+    "professional_profiles": "已检查 / 不适用 / 登录墙已跳过：..."
+  },
+  "contact_search_note": "中文记录八类公开来源、客户类型对应角色阶梯、当地语言关键词、LinkedIn或当地职业网络结果及访问限制",
   "fit_reason": "中文匹配推断，不写成采购需求事实",
   "risks": "中文描述不确定性或合作障碍",
   "confidence": "高 | 中 | 低",
@@ -117,9 +130,19 @@ Each lead supports:
 
 Score maxima are 30, 20, 15, 10, 10, 10, and 5.
 
-`contact_status` and `contact_search_note` are required for every qualified lead and near match. When `contact_name` is populated, also require `contact_title` and at least one `contact_source_urls` entry. When no person is found, keep `contact_name` empty in JSON; the workbook builder will display `未找到具名采购联系人` without treating it as a real person.
+`contact_status`, `contact_search_note`, and all eight `public_source_lane_results` keys are required for every newly researched qualified lead and near match. Use a short Chinese result, `不适用`, or an access limitation for every lane. When `contact_name` is populated, also require `contact_title` and at least one `contact_source_urls` entry. When no person is found, keep `contact_name` empty in JSON; the workbook builder will display `未找到可核实具名联系人` without treating it as a real person. The builder remains backward-compatible with older JSON that lacks the structured lane object.
+
+Build a runtime source map for the actual country, language, industry, and customer type. Do not hard-code a country registry, trade fair, association, procurement portal, or professional network as a universal source. Record the result or access limitation for every source category required by `public-contact-playbook.md` in `contact_search_note`.
+
+Adapt the contact role order to `customer_type` using `public-contact-playbook.md`. Populate the highest-priority supported person for that customer type instead of applying one procurement-to-executive sequence to every company.
+
+Populate `professional_profile_url` with an exact public LinkedIn or local professional-network profile only when the person-company-role match is supported, and set `professional_network` to the source name. `linkedin` remains accepted for backward compatibility. Record an explicit public-professional-profile-not-found or login-wall result in `contact_search_note` when no exact accessible profile is available.
+
+`apollo_deep_research_prompt` is optional in input. The workbook builder fills it automatically for every row without a public personal business email. The prompt must begin exactly `需尝试Apollo积分深度背调`. A company-general or department mailbox does not count as a person's email.
 
 The workbook builder derives `scores.reachability` from the actual named contact and contact route. It does not trust an inflated input score.
+
+A qualified lead must have a reachable public company channel and therefore must not use the unresolved `E` state (`公开网页未找到可用联系人`). Put an otherwise plausible but unreachable company in `near_matches`; exclude it when other required qualification evidence is also insufficient.
 
 ## `near_matches`
 
@@ -142,5 +165,5 @@ Each item supports:
 
 - Use empty strings or empty arrays for unknown values.
 - Do not use an empty string for `contact_status` or `contact_search_note`.
-- Never use guessed values.
+- Never use guessed values, inferred email patterns, or approximate professional-profile URLs.
 - Keep URLs as plain text so the workbook remains auditable.

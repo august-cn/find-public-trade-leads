@@ -9,16 +9,21 @@
 - 适用于任意产品和目标国家，不内置特定行业或市场
 - 通过 7 项表单收集产品、市场和理想客户画像
 - 使用公司官网、公开目录、协会、展会名单和公共登记信息开展研究
+- 根据目标国家、语言、行业和客户类型，动态发现当地登记机构、监管目录、采购平台、协会、展会和职业网络，不写死某个国家或行业
 - 识别进口商、经销商、批发商、品牌商、制造商、零售商等 B2B 客户
 - 核实公司网站、地址、规模线索、产品匹配证据、公开邮箱和电话
-- 对每家公司单独搜索采购、品类、产品、供应商管理或负责人联系人
-- 记录联系人姓名、职位、LinkedIn、联系人专属来源和检索说明
+- 根据进口商、零售商、品牌商、制造商、项目方、运营商等客户类型动态调整联系人优先级
+- 即使没有采购负责人，也尽量填入可核实的管理层、产品或市场负责人
+- 为每家公司单独补查LinkedIn或当地职业网络，记录准确个人主页、联系人专属来源和检索说明
+- 没有公开个人邮箱时自动给出“需尝试Apollo积分深度背调”提示
 - 自动排除不符合要求的公司并合并重复主体
 - 使用透明的 100 分模型对客户进行评分和分级
 - 为每家公司生成基于真实公开信息的个性化开发信
 - 导出经过排版和公式检查的 Excel 工作簿
 
-本项目默认使用公开网页，不把 Apollo 作为必需依赖。如果公开搜索后的具名联系人覆盖率为 0 或低于 50%，Agent 会提示用户是否安装或连接 Apollo 进行可选的第二轮增强，并明确说明 Apollo 可能需要付费套餐或消耗积分。用户拒绝或无法使用 Apollo 时，公开网页版本仍会正常导出。
+本项目默认使用公开网页，不把 Apollo 作为必需依赖。公开搜索会按客户类型覆盖相关决策角色，并补查LinkedIn或当地职业网络；任何记录缺少公开个人邮箱时，工作簿都会给出“需尝试Apollo积分深度背调”提示。Agent只会在用户明确批准后调用可能消耗积分的Apollo增强；用户拒绝或无法使用Apollo时，公开网页版本仍会正常导出。
+
+所有默认来源必须无需用户注册、无需安装浏览器扩展或插件。遇到登录墙、付费墙、反复验证码或禁止目标自动访问的条款时，Agent会跳过该来源、记录限制并继续，不要求用户绕过访问控制。
 
 ## 适合谁
 
@@ -76,11 +81,28 @@ Agent 会先要求填写以下 7 项信息；信息完整后才开始搜索。
 2. 生成产品同义词、本地语言关键词、目标客户类型和多组搜索式。
 3. 广泛发现候选公司，并按照用户的硬性条件初步筛选。
 4. 优先使用公司官网核实主体、业务范围、地址、联系方式和产品证据。
-5. 对每家公司执行独立的采购联系人检索，覆盖官网、职位关键词、职业网络、PDF和行业来源。
+5. 对每家公司执行独立的联系人检索，按客户类型覆盖采购、品类、产品、项目、运营、管理层或市场商务负责人，并补查公开职业网络。
 6. 对公司规模、渠道匹配、合作方式、证据质量和真实可联系路径进行评分。
 7. 合并重复公司，将证据不足但可能相关的公司放入“待探索”名单。
 8. 根据每家公司已经核实的事实撰写开发信。
 9. 生成并检查最终 Excel 文件。
+
+## 跨国家、跨行业的公开联系人来源
+
+Agent固定执行八类来源，但每次根据Brief动态确定具体网站和当地语言关键词：
+
+1. 公司官网的团队、管理层、联系、新闻、供应商、合作伙伴、产品、招聘和法律声明页面；
+2. 搜索引擎收录的站内页面、PDF、目录、新闻稿、演示文稿和历史展会资料；
+3. 目标市场公开可访问的公司登记、监管、许可、认证和上市公司披露；
+4. 行业协会、商会、产业集群、会员名单和加盟网络；
+5. 展会展商、会议嘉宾、讲者、赞助商、网络研讨会和活动手册；
+6. 与目标客户类型相关的公共采购、招标和合同授予文件；
+7. 新闻、采访、播客、视频、招聘、合作公告、经销商和服务伙伴网络；
+8. LinkedIn及当地职业网络的公开页面或搜索摘要；遇到登录墙时只保留公开证据。
+
+每家公司都必须在结构化的 `public_source_lane_results` 中记录八类来源的结果；没有结果时填写“未找到”，与该客户类型无关时填写“不适用”，遇到登录墙或访问限制时写明限制，不能静默跳过。
+
+联系人优先级也会随客户类型变化：进口商优先采购、进口和品类负责人；零售商优先Buyer、Category和Merchandising；品牌商优先Sourcing、Private Label和Product；制造商优先采购、供应链和技术运营；项目客户优先项目采购、工程、设施和运营；小型企业可优先创始人或总经理。市场、品牌、渠道和商务负责人仅在合作模式相关或更高优先角色不可核实时作为有效后备，不会冒充采购负责人。
 
 ## Excel 输出
 
@@ -124,8 +146,10 @@ Agent 会先要求填写以下 7 项信息；信息完整后才开始搜索。
 
 - 只收集公开可访问的企业和商务联系信息。
 - 不猜测姓名、职位、邮箱格式、LinkedIn、电话、员工数或营业收入。
-- 找不到公开采购负责人时，不伪造姓名；联系人栏显示“未找到具名采购联系人”，并提供采购部门或公司官方渠道。
-- 找不到具名采购负责人时，Excel 显示“未找到具名采购联系人”，同时填写联系人状态、检索说明和最佳转交渠道，不再出现无解释的空白。
+- 找不到第一优先角色时，继续搜索该客户类型对应的产品、品类、项目、运营、管理层或市场商务负责人，不因单一职位缺失而过早停止。
+- 所有相关角色均无法核实时，Excel 显示“未找到可核实具名联系人”，同时填写联系人状态、检索说明和最佳转交渠道。
+- LinkedIn或当地职业网络必须逐家公司搜索；只有精确匹配姓名、现任公司和职位的公开主页才能写入。
+- 找不到公开个人邮箱时，不猜测邮箱格式；Excel自动写入“需尝试Apollo积分深度背调”提示。
 - 公司通用邮箱或总机不能获得最高可联系评分；只有已核实具名联系人及直接联系方式才能获得最高分。
 - 搜索摘要和第三方目录主要用于发现线索，关键结论优先由官网验证。
 - 每条客户记录保留来源链接，并区分事实、合理推断和未知信息。
@@ -163,6 +187,7 @@ find-public-trade-leads/
 │   ├── intake-form.md
 │   ├── research-workflow.md
 │   ├── data-contract.md
+│   ├── public-contact-playbook.md
 │   └── example-input.json
 └── scripts/
     ├── run_build.py
@@ -175,6 +200,6 @@ find-public-trade-leads/
 
 ## English summary
 
-Find Public Trade Leads is a reusable Codex skill for public-web B2B prospecting. It collects a seven-part product and ideal-customer brief, discovers and verifies companies using public sources, scores and deduplicates prospects, drafts evidence-based outreach, and exports a polished Excel workbook. Workbook titles, labels, statuses, and research analysis default to Simplified Chinese, while source-original identifiers and target-market outreach remain unchanged.
+Find Public Trade Leads is a reusable Codex skill for public-web B2B prospecting. It collects a seven-part product and ideal-customer brief, dynamically maps no-registration public sources for the requested country and industry, discovers and verifies companies, adapts decision-maker roles to each customer type, scores and deduplicates prospects, drafts evidence-based outreach, and exports a polished Excel workbook. Workbook titles, labels, statuses, and research analysis default to Simplified Chinese, while source-original identifiers and target-market outreach remain unchanged.
 
 It works across products and markets without requiring Apollo or another paid sales-intelligence service. Every retained prospect receives a dedicated named-contact search; unresolved contacts are labeled explicitly with the search scope and best fallback route instead of unexplained blank cells. Product fit remains a prospecting hypothesis rather than proof of active purchasing demand.

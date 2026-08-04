@@ -1,5 +1,7 @@
 # Public-web research workflow
 
+Read [public-contact-playbook.md](public-contact-playbook.md) before building market-specific source queries or starting contact discovery.
+
 ## Source order
 
 Prefer:
@@ -27,6 +29,8 @@ Translate product and buyer terms into the target market's language. Combine:
 
 Record enough query logic in research notes for another agent to reproduce the search.
 
+Before applying these query families, build the runtime market source map required by `public-contact-playbook.md`. Discover local registries, regulators, procurement portals, associations, trade fairs, professional networks, and business-language title variants for the actual country and industry. Do not reuse a source simply because it worked for a previous country or product.
+
 ## Qualification
 
 Retain a company only when:
@@ -44,29 +48,27 @@ Mark a result `Near Match` when one important criterion is uncertain but the com
 
 Treat contact discovery as a separate required pass after the company shortlist is qualified. Do not stop because a general email or switchboard was found.
 
-### Role order
+### Role ladder
 
-Prefer public contacts in this order:
+Select the role order from the customer-type matrix in `public-contact-playbook.md`; do not apply one universal procurement-to-executive order. Consider the applicable families: procurement/imports/supply chain; buyer/category/merchandising/private label; product/product development; project/facilities/engineering/operations; technical specification or design; business-unit/commercial leadership; owner/managing director for smaller firms; and marketing/brand/channel/partnerships when commercially relevant. After named roles, retain a relevant department route and then a company-general route.
 
-1. procurement, purchasing, sourcing, category management, product management;
-2. merchandising, buying, supplier management, imports, private label, or relevant business-unit leadership;
-3. owner or managing director for genuinely small or owner-led firms;
-4. relevant department email or department phone;
-5. company-general email, contact form, and switchboard.
-
-Translate these role families into the target market's language before searching.
+Translate every applicable role family into the target market's language before searching. Do not stop at a company channel or after one role family fails. Continue until a supported person is found or all role families relevant to that customer type are exhausted.
 
 ### Required public search lanes
 
-For every retained company, run and record at least these lanes:
+For every retained company, run and record all eight source categories in `public-contact-playbook.md`. At minimum, make the following company-specific checks:
 
 1. official site: team, management, about, contact, imprint, press, careers, supplier, and category pages;
-2. domain query: `site:company-domain` plus local-language purchasing, sourcing, category, product, supplier, and buyer titles;
-3. company-name query plus the same role terms;
-4. public professional-network profiles or search snippets that show both current company and role;
+2. domain query: `site:company-domain` plus local-language purchasing, sourcing, executive, product, category, marketing, brand, partnership, supplier, and buyer titles;
+3. company-name query plus the same four role tiers;
+4. LinkedIn or a relevant local public professional-network profile search that shows the exact person, current company, and role;
 5. public PDFs, catalogs, press releases, exhibitor profiles, association pages, or job postings that name responsible staff.
 
-Use multiple role variants. A search for only `procurement` is not enough when the likely owner is a category manager, product manager, buyer, merchandise manager, import manager, or managing director.
+Also check official registries or regulators, public procurement or award notices when commercially relevant, associations or chambers, trade events or speaker pages, partner or distributor networks, public news/interviews, and other local professional networks discovered in the market source map. Record `not relevant`, `not publicly accessible`, or `no result` rather than silently skipping a lane.
+
+Populate the corresponding eight `public_source_lane_results` keys in the workbook input. Use a concise Chinese result for each lane. The free-text `contact_search_note` should summarize the localized role ladder and important limitations instead of being the only record that a lane was checked.
+
+Use multiple role variants selected for the customer type. A search for only `procurement` is not enough. Record the best supported person from the highest relevant role tier, but keep searching public professional networks for an exact profile URL even after a named person is found.
 
 ### Verification and completion
 
@@ -74,27 +76,43 @@ Accept a named person only when public evidence supports:
 
 - the person's name;
 - current assignment to the exact company or resolved legal entity;
-- a role relevant to buying, product, category, sourcing, supplier management, imports, or owner-led purchasing.
+- a role in the procurement, executive, product/category, or marketing/business-development ladder.
 
 Use `已公开核实` when official evidence supports the person and role. Use `仅二手来源` when a credible public professional or industry source supports both but the company site does not. Use `待核实` only when the person-company match is plausible but role currency remains uncertain; do not treat this as a verified buyer.
 
-The contact pass is complete only when either:
+The contact pass is complete only when:
 
-- a named contact and contact-specific source are recorded; or
-- all required public search lanes are recorded in `contact_search_note`, `contact_status` explains the fallback, and the best department or company route is supplied.
+- a named contact and contact-specific source are recorded, plus the exact public professional-profile URL or an explicit not-found/login-wall note; or
+- all named-person role families applicable to the customer type and all required public search lanes are recorded, `contact_status` explains the fallback, and the best department or company route is supplied.
 
-Never leave `contact_status` or `contact_search_note` blank. When no person is found, write `未找到具名采购联系人` in the workbook contact cell and keep any recommended department explicitly labeled as a transfer target rather than a named person.
+Never leave `contact_status` or `contact_search_note` blank. When no person is found after the complete ladder, write `未找到可核实具名联系人` in the workbook contact cell and keep any recommended department explicitly labeled as a transfer target rather than a named person.
 
 Never infer an email from a naming pattern. Never convert a general mailbox into a named person's email.
 
+### Professional-profile and email completion
+
+For every retained company:
+
+1. search the exact contact name plus company and role on LinkedIn and any relevant local public professional network;
+2. accept only an exact public profile URL supported by the person-company-role match;
+3. search official team/contact pages, public staff directories, press releases, PDFs, event profiles, association pages, and public professional profiles for a direct business email;
+4. preserve a department or company mailbox only as a fallback route and label it accurately;
+5. if no public personal business email is supported, set `apollo_deep_research_prompt` to text beginning exactly `需尝试Apollo积分深度背调`.
+
+Use these prompt patterns:
+
+- named contact available: `需尝试Apollo积分深度背调：使用已核实或候选联系人的姓名、公司域名和公开职业主页进行People Enrichment，补全并复核商务邮箱；调用前确认积分成本。`
+- no named contact available: `需尝试Apollo积分深度背调：使用公司域名、客户类型和已经搜索的当地语言角色词继续查找最高优先决策人，再补全并复核商务邮箱；调用前确认积分成本。`
+
 ### Optional Apollo second pass
 
-Public web research remains the default and must be completed first. If named-contact coverage is zero or below 50% of the qualified list, offer Apollo installation or connection once as an optional enrichment pass.
+Public web research remains the default and must be completed first. If a named contact or public personal email remains missing, retain the row-level Apollo deep-research prompt and offer Apollo installation or connection once as an optional enrichment pass.
 
 - State that Apollo may require a paid plan or consume credits.
 - Do not install, connect, or spend credits without user approval.
 - If Apollo is not installed, use the available plugin installation prompt rather than giving manual token or credential instructions.
 - If the user declines, Apollo is unavailable, or no result is returned, continue with the public-web workbook and preserve the unresolved status.
+- If the user has already prohibited registration, plugins, or paid enrichment, do not offer installation again. Preserve the row-level prompt for future optional use, but mark enrichment as declined or unavailable in the handoff.
 - Verify any Apollo contact against company identity and role; label its provenance and do not merge conflicting people silently.
 
 ## Size evidence

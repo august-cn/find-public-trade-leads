@@ -1,6 +1,6 @@
 ---
 name: find-public-trade-leads
-description: Collect a seven-part product and target-customer brief, research qualified foreign-trade prospects using public web sources, run a dedicated named procurement-contact search for every shortlisted company, verify company and contact evidence, score and deduplicate results, draft personalized outreach, and export a polished Chinese-language Excel workbook. Use when a user wants importers, distributors, wholesalers, brand owners, manufacturers, retailers, buyers, decision-makers, or other B2B prospects for any product and market, with optional Apollo enrichment only when public contact coverage remains inadequate.
+description: Collect a seven-part product and target-customer brief, dynamically map no-registration public sources for the target country and industry, research qualified foreign-trade prospects, adapt the decision-maker role ladder to each customer type, verify public professional profiles and contact evidence, flag missing personal emails for optional Apollo credit-based deep research, score and deduplicate results, draft personalized outreach, and export a polished Chinese-language Excel workbook. Use when a user wants importers, distributors, wholesalers, brand owners, manufacturers, retailers, project buyers, executives, product or marketing decision-makers, or other B2B prospects for any product and market.
 ---
 
 # Find Public Trade Leads
@@ -30,11 +30,13 @@ If all seven fields are present, normalize them into the data contract and proce
 ## 2. Build the search brief
 
 Read [references/research-workflow.md](references/research-workflow.md).
+Read [references/public-contact-playbook.md](references/public-contact-playbook.md) before generating market-specific source and contact queries.
 
 Derive:
 
 - product names, materials, applications, standards, and local-language synonyms;
 - likely customer types and buying roles;
+- a runtime market source map covering local languages, official registries, regulators, public procurement, associations, trade fairs, public professional networks, and access limitations;
 - hard inclusions and exclusions;
 - target size proxies;
 - reference-brand channel clues;
@@ -51,19 +53,26 @@ For every retained company:
 
 - verify company identity, market presence, website, address, business model, size band, product/category evidence, public email or contact route, and phone;
 - run the dedicated contact-discovery pass in [references/research-workflow.md](references/research-workflow.md) after company qualification; company-level research does not count as contact research;
-- search first for named procurement, purchasing, sourcing, category, product, merchandising, supplier-management, or buying contacts; for genuinely small owner-led firms, search the owner or managing director;
+- adapt the role ladder to the prospect's customer type using [references/public-contact-playbook.md](references/public-contact-playbook.md), then fill the best supported person instead of applying one fixed title order to every company;
 - verify a named person's current company assignment and relevant role before recommending them;
+- run a dedicated public professional-profile pass for every retained company, including LinkedIn or a relevant local network, and populate the exact public profile URL whenever the person-company-role match is supported;
 - populate `contact_status`, `contact_search_note`, and `contact_source_urls` for every retained row; these fields must never be blank;
-- continue until either a named contact is supported or the required public search lanes are documented as exhausted;
+- populate all eight keys in `public_source_lane_results` with a checked result, `不适用`, or an access limitation; never omit a lane silently;
+- continue down the full role ladder until either a named contact is supported or every required public search lane is documented as exhausted;
+- run and record the eight public source lanes: official company pages; indexed pages and public documents; official registries and regulators; associations and chambers; trade fairs and speakers; public procurement and awards when relevant; public commercial signals; and public professional profiles;
 - prefer official sources for final claims;
 - use directories and search snippets only as discovery or clearly labeled secondary evidence;
-- show `未找到具名采购联系人` instead of an empty contact-name cell when the public search is exhausted;
-- never guess a person's name, title, email pattern, LinkedIn URL, phone, purchasing activity, certifications, revenue, or employee count;
+- show `未找到可核实具名联系人` instead of an empty contact-name cell only after procurement, executive, product, and marketing role searches are exhausted;
+- never guess a person's name, title, email pattern, professional-profile URL, phone, purchasing activity, certifications, revenue, or employee count;
 - label named contacts as `已公开核实`, `仅二手来源`, or `待核实`;
-- when no named buyer is verifiable, label the result as `未找到具名联系人；已提供部门渠道`, `未找到具名联系人；已提供公司渠道`, or `公开网页未找到可用联系人`;
-- use a clearly labeled department or company-general route when no public buyer is verifiable.
+- when no named decision-maker is verifiable, label the result as `未找到具名联系人；已提供部门渠道`, `未找到具名联系人；已提供公司渠道`, or `公开网页未找到可用联系人`;
+- use a clearly labeled department or company-general route when no named decision-maker is verifiable;
+- never treat a company-general or department mailbox as a person's email;
+- when a public personal business email remains unavailable after the required email lanes, populate `apollo_deep_research_prompt` with a prompt beginning exactly `需尝试Apollo积分深度背调`.
 
-Measure named-contact coverage before drafting outreach. If coverage is zero or below 50% of qualified companies after the public search pass, pause once to offer installation or connection of Apollo as an optional second pass. Explain that Apollo may require a paid plan or consume credits. Do not imply that Apollo is free, do not install or spend credits without user approval, and do not block the public-web workbook when the user declines or Apollo is unavailable.
+Use only public pages that do not require the user to register, install an extension, provide credentials, or bypass access controls. Skip login walls, paid gates, and sources whose terms prohibit the intended automated access. Do not make any named platform, registry, trade fair, or country-specific source a universal dependency.
+
+Measure named-contact and public-personal-email coverage before drafting outreach. If a named contact or personal email is still missing after the public search pass, preserve the best public route and write the Apollo deep-research prompt in that row. Offer Apollo as an optional second pass when it could materially improve coverage. Explain that Apollo may require a paid plan or consume credits. Do not imply that enrichment is free, and do not install, connect, or spend credits without user approval.
 
 Normalize domains and legal suffixes. Deduplicate by:
 
@@ -87,8 +96,8 @@ Score observable fit:
 
 Derive reachability from the actual contact path:
 
-- 5: verified named buyer plus a public direct email or direct phone;
-- 4: verified or credible named buyer plus a public company or department route;
+- 5: verified named decision-maker plus a public direct email or direct phone;
+- 4: verified or credible named decision-maker plus a public company or department route;
 - 3: relevant department email or department phone;
 - 2: company-general email or switchboard;
 - 1: contact form or website route only;
@@ -125,7 +134,7 @@ Write in Chinese:
 
 Keep these fields in their source-original form:
 
-- company and legal names, contact person names, postal addresses, email addresses, phone numbers, websites, source URLs, LinkedIn URLs, and registered brand or product names;
+- company and legal names, contact person names, postal addresses, email addresses, phone numbers, websites, source URLs, public professional-profile URLs, and registered brand or product names;
 - outreach subject and body written in the target market's business language.
 
 Translate a contact title or department into Chinese; add the original title in parentheses only when it improves identification. Never translate, rewrite, or infer an email address, URL, phone number, personal name, or postal address.
@@ -168,8 +177,11 @@ After generation:
 - view every rendered sheet;
 - verify that worksheet names, titles, headers, labels, legends, notes, statuses, tiers, and explanatory fields are in Chinese;
 - verify that every row has a nonblank contact status and contact-search note;
-- verify that contact names, roles, and LinkedIn URLs have contact-specific source evidence;
-- verify that rows without a named contact display an honest searched-not-found label and a usable fallback route when available;
+- verify that contact names, roles, and public professional-profile URLs have contact-specific source evidence;
+- verify that every company has a recorded public professional-network search result, even when no exact profile is found;
+- verify that every company has all eight structured `public_source_lane_results` entries and that each entry records a result, `不适用`, or an access limitation;
+- verify that rows without a named contact display an honest searched-not-found label only after the full role ladder is exhausted and retain a usable fallback route when available;
+- verify that every row without a public personal email contains a prompt beginning `需尝试Apollo积分深度背调`;
 - reconcile the named-contact count and reachability score with the actual contact fields;
 - spot-check narrative customer fields and translate any avoidable foreign-language analysis into Chinese;
 - confirm that source-original identifiers and target-language outreach remain unchanged;
@@ -183,7 +195,7 @@ Report:
 - qualified, near-match, and excluded counts;
 - top prospects and why they rank highly;
 - named-contact coverage versus company-channel coverage;
-- public contact-search coverage, unresolved companies, and whether Apollo was unavailable, offered, declined, or used with approval;
+- public contact-search and professional-profile coverage, unresolved companies, missing personal-email prompts, and whether Apollo was unavailable, offered, declined, or used with approval;
 - source limitations and unresolved fields;
 - output workbook path.
 
