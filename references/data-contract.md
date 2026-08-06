@@ -41,7 +41,7 @@ Optional:
 - `history_company_count` number loaded before the current search
 - `duplicates_skipped_count` number of historical candidates omitted from this batch
 
-Copy the currently resolved saved mode into `brief.apollo_mode`. Use `brief.apollo_usage` to record what actually happened in this research run. A `credit_per_call` preference alone does not mean credits were used.
+Set `brief.apollo_mode` from the current run: `public_only` when Apollo was unavailable or disabled, `connected_free` when only verified zero-credit search was available or used, and `credit_per_call` when a credit-consuming call was approved for this run. Use `brief.apollo_usage` to record what actually happened. Plugin installation or connection alone does not mean credits were used.
 
 Copy the project-local continuation context into the five history fields. These values make the workbook auditable; the actual deduplication state remains in the git-ignored project history rather than inside GitHub.
 
@@ -97,7 +97,7 @@ Each lead supports:
   "product_evidence": "已核实的产品或品类重合证据",
   "contact_name": "",
   "contact_title": "采购经理，或建议转交的部门",
-  "contact_status": "已公开核实 | 仅二手来源 | 待核实 | 未找到具名联系人；已提供部门渠道 | 未找到具名联系人；已提供公司渠道 | 公开网页未找到可用联系人",
+  "contact_status": "已公开核实 | 仅二手来源 | 待核实 | 需通过Apollo插件优化搜索；当前仅提供部门渠道 | 需通过Apollo插件优化搜索；当前仅提供公司渠道 | 需通过Apollo插件优化搜索；公开网页暂无可用联系人",
   "email": "",
   "email_type": "公开个人邮箱 | 部门邮箱 | 公司通用邮箱 | 联系表单 | 未找到",
   "phone": "",
@@ -141,7 +141,7 @@ Each lead supports:
 
 Score maxima are 30, 20, 15, 10, 10, 10, and 5.
 
-`contact_status`, `contact_search_note`, and all eight `public_source_lane_results` keys are required for every newly researched qualified lead and near match. Use a short Chinese result, `不适用`, or an access limitation for every lane. When `contact_name` is populated, also require `contact_title` and at least one `contact_source_urls` entry. When no person is found, keep `contact_name` empty in JSON; the workbook builder will display `未找到可核实具名联系人` without treating it as a real person. The builder remains backward-compatible with older JSON that lacks the structured lane object.
+`contact_status`, `contact_search_note`, and all eight `public_source_lane_results` keys are required for every newly researched qualified lead and near match. Use a short Chinese result, `不适用`, or an access limitation for every lane. When `contact_name` is populated, also require `contact_title` and at least one `contact_source_urls` entry. When no person is found, keep `contact_name` empty in JSON; the workbook builder will display `需通过Apollo插件优化搜索具名联系人` without treating it as a real person. The builder remains backward-compatible with older JSON and automatically converts old `未找到具名联系人` statuses to the new Apollo optimization wording.
 
 Build a runtime source map for the actual country, language, industry, and customer type. Do not hard-code a country registry, trade fair, association, procurement portal, or professional network as a universal source. Record the result or access limitation for every source category required by `public-contact-playbook.md` in `contact_search_note`.
 
@@ -153,7 +153,7 @@ Populate `professional_profile_url` with an exact public LinkedIn or local profe
 
 The workbook builder derives `scores.reachability` from the actual named contact and contact route. It does not trust an inflated input score.
 
-A qualified lead must have a reachable public company channel and therefore must not use the unresolved `E` state (`公开网页未找到可用联系人`). Put an otherwise plausible but unreachable company in `near_matches`; exclude it when other required qualification evidence is also insufficient.
+A qualified lead must have a reachable public company channel and therefore must not use the unresolved `E` state (`需通过Apollo插件优化搜索；公开网页暂无可用联系人`). Put an otherwise plausible but unreachable company in `near_matches`; exclude it when other required qualification evidence is also insufficient.
 
 ## `near_matches`
 

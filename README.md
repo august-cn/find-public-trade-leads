@@ -16,22 +16,24 @@
 - 即使没有采购负责人，也尽量填入可核实的管理层、产品或市场负责人
 - 为每家公司单独补查LinkedIn或当地职业网络，记录准确个人主页、联系人专属来源和检索说明
 - 没有公开个人邮箱时自动给出“需尝试Apollo积分深度背调”提示
+- 首次未检测到Apollo插件时，边执行公开调查边给出一次非阻塞的注册、安装和连接建议
+- 检测到Apollo插件后不再重复安装提示；积分补全仍按每次调用单独授权
 - 自动排除不符合要求的公司并合并重复主体
 - 在同一Codex项目内自动保存已查企业，后续批次无需上传旧Excel即可跨批次查重
 - 使用透明的 100 分模型对客户进行评分和分级
 - 为每家公司生成基于真实公开信息的个性化开发信
 - 导出经过排版和公式检查的 Excel 工作簿
 
-本项目默认可完全使用公开网页，不把 Apollo 作为必需依赖。首次调用时，Agent会让用户选择一次Apollo状态并保存在当前Codex用户设备；以后不再重复询问。公开搜索会按客户类型覆盖相关决策角色，并补查LinkedIn或当地职业网络；任何记录缺少公开个人邮箱时，工作簿都会给出“需尝试Apollo积分深度背调”提示。即使选择了允许积分，Agent也只记住“可逐次申请”，每次真正耗分前仍会说明操作、数量和积分风险并等待单独批准。
+本项目始终先执行公开网页调查，不把Apollo设置作为开始研究的前置问题。首次未检测到Apollo插件时，Agent会在调查已经进行的同时建议用户注册Apollo并安装、连接Apollo插件；该提示不要求用户停下来选择或确认。连接Apollo MCP后，可用官方当前明确为零积分的People Search补充姓名、职位和职业主页；需要完整联系人信息时，可在逐次授权后使用Apollo积分调查个人或商务邮箱和电话。检测到Apollo插件后，Agent不再重复注册或安装提示；任何真正耗分的调用仍必须说明动作、数量、字段和积分上限，并等待该次明确批准。
 
-所有默认来源必须无需用户注册、无需安装浏览器扩展或插件。遇到登录墙、付费墙、反复验证码或禁止目标自动访问的条款时，Agent会跳过该来源、记录限制并继续，不要求用户绕过访问控制。
+公开调查层的所有默认来源必须无需用户注册、无需安装浏览器扩展或插件。Apollo是可选的联系人补全层，只使用用户自行注册、安装和连接的账号。遇到其他登录墙、付费墙、反复验证码或禁止目标自动访问的条款时，Agent会跳过该来源、记录限制并继续，不要求用户绕过访问控制。
 
 ## 适合谁
 
 - 外贸公司、工厂和出口销售团队
 - 希望开拓新国家或新渠道的业务负责人
 - 需要批量整理潜在客户并保留证据来源的研究人员
-- 不使用付费获客数据库，但仍希望获得可复核结果的用户
+- 希望把可复核的公开调查与可选Apollo联系人补全结合使用的用户
 
 ## 使用方式
 
@@ -92,26 +94,27 @@ Agent 会先要求填写以下 7 项信息；信息完整后才开始搜索。
 
 历史文件保存在当前项目的 `.find-public-trade-leads/history.json`，并由仓库的 `.gitignore` 排除。GitHub只发布查重代码，不会上传任何用户的客户历史。此功能只在同一个本地Codex项目目录中生效；换项目、换设备、删除历史目录或重新克隆后会重新建立历史。
 
-## 首次 Apollo 状态选择
+## 首次 Apollo 建议与后续补全
 
-首次使用本技能时只提示一次。用户选择后，状态保存在当前设备的Codex用户目录中；不保存Apollo账号、密码、令牌、积分余额或其他凭据。技能没有内置共享Apollo账号，两个“已连接”选项只表示当前用户已经用自己的账号完成连接。换设备、使用不同Codex用户目录或清除本地状态后会重新提示。
+技能不会在调查前要求用户选择Apollo模式。公开网页研究会立即开始，并按客户类型完成公司核实、联系人角色检索和职业网络检查。
 
-| 选择 | 适用情况 | 技能行为 |
-| --- | --- | --- |
-| 未注册、未安装、未连接或不可用（推荐默认） | 没有Apollo账号、没有连接，或不想使用Apollo | 完整执行免注册公开网页调查；不中断、不调用Apollo；缺失个人邮箱时写入“需尝试Apollo积分深度背调” |
-| 已连接，但不使用积分 | 已使用自己的Apollo账号连接Codex，但不允许耗分 | 只调用官方当前明确标为零积分的People Search等免费动作，补姓名、职位、现任公司和职业主页；不调用邮箱、电话、公司搜索或任何增强动作 |
-| 已连接，允许逐次审批积分 | 愿意在公开搜索和免费搜索不足时考虑付费增强 | 先完成公开与免费搜索；每次耗分前列出动作、人数、字段和积分风险，取得该次明确批准后才执行；默认不查电话、不启用waterfall |
-
-可以随时在对话中修改：
+当当前会话未检测到Apollo插件/MCP工具，而且安装建议从未显示过时，Agent会在研究进度消息中提示一次：
 
 ```text
-更改 Apollo 状态为未注册、未安装或仅公开搜索
-更改 Apollo 状态为已连接但不使用积分
-更改 Apollo 状态为已连接并允许逐次审批积分
-忘记 Apollo 状态
+公开网页调查已开始。若希望补充更多具名联系人，建议注册Apollo并安装、连接Apollo插件。
+连接Apollo MCP后，可用零积分People Search补充姓名、职位和职业主页；经逐次积分授权，
+还可进一步调查完整联系人信息，包括个人或商务邮箱和电话。
 ```
 
-修改后立即按新模式继续当前调查。`这次不要用 Apollo`只限制当前任务，不会改写长期选择；任何一次性指令都不能代替耗分调用的逐次批准。
+该建议不会暂停调查，也不会要求用户立即注册。技能只在当前Codex项目的git忽略目录中保存“建议已经显示”这一布尔状态，不保存Apollo账号、密码、令牌、余额或其他凭据，也不会上传到GitHub。检测到Apollo插件后，不再显示注册或安装建议。
+
+Apollo连接后的规则：
+
+- 官方当前明确为零积分的People Search可在公开调查之后自动使用，用于补姓名、职位、现任公司和职业主页；
+- 公司搜索、联系人增强、个人邮箱、电话、waterfall或任何正积分/未知成本动作都必须逐次披露；
+- 披露内容包括具体动作、记录数量、请求字段、已知或最大积分影响，以及是否包含个人邮箱、电话或waterfall；
+- 安装插件、连接账号或以前批准过其他调用，都不等于本次积分授权；
+- 用户拒绝某次调用时，技能继续导出最佳公开/免费结果，不降低证据标准。
 
 ## 工作流程
 
@@ -185,7 +188,7 @@ Agent固定执行八类来源，但每次根据Brief动态确定具体网站和�
 - 只收集公开可访问的企业和商务联系信息。
 - 不猜测姓名、职位、邮箱格式、LinkedIn、电话、员工数或营业收入。
 - 找不到第一优先角色时，继续搜索该客户类型对应的产品、品类、项目、运营、管理层或市场商务负责人，不因单一职位缺失而过早停止。
-- 所有相关角色均无法核实时，Excel 显示“未找到可核实具名联系人”，同时填写联系人状态、检索说明和最佳转交渠道。
+- 所有相关角色均无法核实时，Excel 联系人栏显示“需通过Apollo插件优化搜索具名联系人”；联系人状态同时保留“当前仅提供部门渠道”“当前仅提供公司渠道”或“公开网页暂无可用联系人”等事实说明。
 - LinkedIn或当地职业网络必须逐家公司搜索；只有精确匹配姓名、现任公司和职位的公开主页才能写入。
 - 找不到公开个人邮箱时，不猜测邮箱格式；Excel自动写入“需尝试Apollo积分深度背调”提示。
 - 公司通用邮箱或总机不能获得最高可联系评分；只有已核实具名联系人及直接联系方式才能获得最高分。
@@ -224,14 +227,14 @@ find-public-trade-leads/
 │   └── openai.yaml
 ├── references/
 │   ├── intake-form.md
-│   ├── apollo-preference.md
+│   ├── apollo-routing.md
 │   ├── continuation-search.md
 │   ├── research-workflow.md
 │   ├── data-contract.md
 │   ├── public-contact-playbook.md
 │   └── example-input.json
 └── scripts/
-    ├── apollo_preference.py
+    ├── apollo_onboarding.py
     ├── lead_history.py
     ├── run_build.py
     └── build_lead_workbook.mjs
@@ -245,4 +248,4 @@ find-public-trade-leads/
 
 Find Public Trade Leads is a reusable Codex skill for public-web B2B prospecting. It collects a seven-part product and ideal-customer brief, dynamically maps no-registration public sources for the requested country and industry, discovers and verifies companies, adapts decision-maker roles to each customer type, scores and deduplicates prospects, drafts evidence-based outreach, and exports a polished Excel workbook. Workbook titles, labels, statuses, and research analysis default to Simplified Chinese, while source-original identifiers and target-market outreach remain unchanged.
 
-It works across products and markets without requiring Apollo or another paid sales-intelligence service. In the same local Codex project, completed batches are recorded in a git-ignored history so a simple “use the previous criteria and find another 20” request automatically excludes every previously qualified, near-match, and excluded company without re-uploading an old workbook. Every retained prospect receives a dedicated named-contact search; unresolved contacts are labeled explicitly with the search scope and best fallback route instead of unexplained blank cells. Product fit remains a prospecting hypothesis rather than proof of active purchasing demand.
+It works across products and markets by starting with public-web research immediately. When the Apollo plugin is not detected, the skill shows one non-blocking recommendation to register, install, and connect it while research continues. Once the plugin is detected, setup prompts stop. Verified zero-credit People Search may supplement names and roles; credit-consuming email, personal-email, phone, company-search, or enrichment actions require exact per-call approval. In the same local Codex project, completed batches are recorded in a git-ignored history so a simple “use the previous criteria and find another 20” request automatically excludes every previously qualified, near-match, and excluded company without re-uploading an old workbook. Every retained prospect receives a dedicated named-contact search; unresolved contacts are labeled explicitly with the search scope and best fallback route instead of unexplained blank cells. Product fit remains a prospecting hypothesis rather than proof of active purchasing demand.
