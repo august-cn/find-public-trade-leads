@@ -1,4 +1,4 @@
 interface:
   display_name: "Public-Web Trade Leads"
   short_description: "自动跨批次查重并查找外贸客户、决策人、导出Excel"
-  default_prompt: "使用 $find-public-trade-leads 查找客户并自动记录项目历史；以后我只需说沿用上次条件再找一批，技能就会排除所有已查企业，Apollo耗分调用仍须逐次批准。"
+  default_prompt: "使用 $find-public-trade-leads 先从公开网页查找客户并自动记录项目历史；若未安装Apollo插件，首次调查时给出不阻塞的安装建议，任何Apollo积分调用仍须逐次批准。"

@@ -151,9 +151,9 @@ Never:
 
 Complete the public workflow first. Preserve the best supported person and public route even when a personal email is missing.
 
-Apply the saved mode in [apollo-preference.md](apollo-preference.md). Use Apollo People Search only in a connected mode and only while it is officially zero-credit. Use enrichment only in `credit_per_call` after explicit approval for the exact credit-consuming call. If no enrichment tool is installed, connected, available, or approved, export the public-web workbook normally. Do not block delivery.
+Apply [apollo-routing.md](apollo-routing.md). Public research starts immediately. Use Apollo People Search only when the plugin/MCP is connected and current official documentation marks the exact action zero-credit. Use enrichment only after explicit approval for the exact credit-consuming call. If no enrichment tool is installed, connected, available, or approved, export the public-web workbook normally. Do not block delivery.
 
-If the user has already prohibited registration, plugin installation, paid tools, or enrichment, do not offer installation again during the same task. Preserve the row-level deep-research prompt for future use and record the service as declined or unavailable.
+If the user has already prohibited registration, plugin installation, paid tools, or enrichment, do not offer installation again during the same task. When Apollo tools are detected, stop registration and installation prompts permanently for normal runs. Preserve the row-level deep-research prompt for future use and record the service as declined or unavailable.
 
 Generate the row-level prompt from the evidence already found:
 

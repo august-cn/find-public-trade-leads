@@ -85,7 +85,7 @@ The contact pass is complete only when:
 - a named contact and contact-specific source are recorded, plus the exact public professional-profile URL or an explicit not-found/login-wall note; or
 - all named-person role families applicable to the customer type and all required public search lanes are recorded, `contact_status` explains the fallback, and the best department or company route is supplied.
 
-Never leave `contact_status` or `contact_search_note` blank. When no person is found after the complete ladder, write `未找到可核实具名联系人` in the workbook contact cell and keep any recommended department explicitly labeled as a transfer target rather than a named person.
+Never leave `contact_status` or `contact_search_note` blank. When no person is found after the complete ladder, write `需通过Apollo插件优化搜索具名联系人` in the workbook contact cell and keep any recommended department explicitly labeled as a transfer target rather than a named person.
 
 Never infer an email from a naming pattern. Never convert a general mailbox into a named person's email.
 
@@ -106,12 +106,13 @@ Use these prompt patterns:
 
 ### Optional Apollo second pass
 
-Resolve the saved choice in [apollo-preference.md](apollo-preference.md) before research. Public web research remains the first pass in every mode.
+Follow [apollo-routing.md](apollo-routing.md). Start public research without waiting for Apollo setup or a three-mode choice.
 
-- `public_only`: never call, install, connect, or register Apollo. Preserve unresolved row-level prompts and export normally.
-- `connected_free`: use only People Search, and only when current Apollo documentation explicitly marks that exact action zero-credit. It may supplement a name, title, current company, or professional profile, but does not provide full email or phone details. Never call Contacts Search, Company Search, enrichment, phone retrieval, waterfall enrichment, record-writing tools, or a tool with unknown credit cost.
-- `credit_per_call`: complete public and zero-credit passes first. Before every credit-consuming action, disclose the action, record count, requested data, known or maximum estimated credit effect, and phone/waterfall involvement; proceed only after explicit approval for that exact call.
-- If a connected mode is saved but Apollo is unavailable or authentication fails, fall back to public research for this task and record the mismatch. Do not silently change the saved choice.
+- When Apollo tools are absent, show the one-time, non-blocking registration and plugin recommendation only when the onboarding state says it has not been shown. Continue public research while showing it.
+- When Apollo tools are detected, never repeat the registration or installation recommendation.
+- Use People Search only when current Apollo documentation explicitly marks that exact action zero-credit. It may supplement a name, title, current company, or professional profile, but does not provide full email or phone details.
+- Before Contacts Search, Company Search, enrichment, personal-email reveal, phone retrieval, waterfall enrichment, record-writing, or any unknown/positive-cost action, disclose the exact call scope and obtain explicit approval.
+- If Apollo authentication fails, continue public research and record the mismatch without repeating the installation pitch.
 - Verify any Apollo contact against company identity and role; label provenance and do not merge conflicting people silently.
 - If the user declines a specific enrichment call or Apollo returns no useful result, continue with the best public/free workbook and preserve the unresolved status.
 

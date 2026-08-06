@@ -1,22 +1,23 @@
 ---
 name: find-public-trade-leads
-description: Collect a seven-part product and target-customer brief, remember a one-time Apollo availability preference, persist a git-ignored project-local company history for automatic cross-batch deduplication, continue prior market research from simple requests such as "find more" or "next batch", dynamically map no-registration public sources, verify companies and decision-makers, optionally use zero-credit Apollo search or individually approved enrichment, score results, draft outreach, and export a polished Chinese-language Excel workbook. Use when a user wants new or additional importers, distributors, wholesalers, brand owners, manufacturers, retailers, project buyers, executives, product or marketing decision-makers for any product and market.
+description: Collect a seven-part product and target-customer brief, start with public-web research, non-blockingly recommend Apollo registration and plugin setup once when Apollo MCP is unavailable, stop setup prompts after the plugin is detected, optionally use zero-credit people search or individually approved credit enrichment for personal emails and phones, persist git-ignored project-local company history for cross-batch deduplication, verify prospects and decision-makers, draft outreach, and export a polished Chinese-language Excel workbook. Use when a user wants new or additional importers, distributors, wholesalers, brand owners, manufacturers, retailers, project buyers, executives, product or marketing decision-makers for any product and market.
 ---
 
 # Find Public Trade Leads
 
-Build a verified prospect workbook from a product brief. Use public web evidence as the required first layer; use Apollo only under the saved mode and approval rules below. Treat product fit as a prospecting hypothesis, never as proof of current purchasing demand.
+Build a verified prospect workbook from a product brief. Use public web evidence as the required first layer. Treat Apollo as an optional contact-completion layer that never blocks public research and never spends credits without exact-call approval. Treat product fit as a prospecting hypothesis, never as proof of current purchasing demand.
 
-## 1. Resolve the saved Apollo mode
+## 1. Start public research and detect Apollo
 
-Read [references/apollo-preference.md](references/apollo-preference.md). Run its preference script at the start of every invocation.
+Read [references/apollo-routing.md](references/apollo-routing.md). Do not ask the user to choose among three Apollo modes before research.
 
-- If no saved choice exists, explain all three modes and ask the user to choose once before starting research.
-- Save the answer, then continue the user's original task without asking for routine reconfirmation.
-- If a saved choice exists, use it without asking again.
-- If the user explicitly changes or forgets the choice, update or clear it immediately and route the current task through the new mode.
-- Never store credentials. Never treat the credit-enabled mode as permanent permission to spend credits; obtain explicit approval for each exact credit-consuming call.
-- If Apollo is saved as connected but the tool or authentication is unavailable, fall back to public research for the current task and continue without blocking delivery.
+- Begin the public-web workflow as soon as the seven-part brief is complete; Apollo setup must not delay company discovery or contact research.
+- Detect whether Apollo plugin/MCP tools are available in the current session.
+- If Apollo is unavailable and the one-time recommendation has not been shown, recommend registering at Apollo and installing/connecting the Apollo plugin while public research continues. Explain that connected Apollo MCP can supplement named-contact discovery and, with separately approved credits, investigate fuller contact data including personal/business email and phone. Do not pause for an answer.
+- After the Apollo plugin/MCP tools are detected, never show the registration or installation recommendation again. If authentication fails, continue publicly and report the connection issue without repeating the installation pitch.
+- When Apollo is connected, use People Search only if current official documentation marks the exact action zero-credit. Use it after the public pass to supplement names, titles, current companies, and professional profiles.
+- Before every credit-consuming action, disclose the exact action, record count, requested fields, known or maximum credit effect, and whether phone, personal-email reveal, or waterfall enrichment is included. Wait for explicit approval for that exact call.
+- Never treat plugin installation, connection, prior approval, or general willingness to use Apollo as blanket spending permission.
 
 ## 2. Load project history and detect continuation
 
@@ -83,17 +84,17 @@ For every retained company:
 - run and record the eight public source lanes: official company pages; indexed pages and public documents; official registries and regulators; associations and chambers; trade fairs and speakers; public procurement and awards when relevant; public commercial signals; and public professional profiles;
 - prefer official sources for final claims;
 - use directories and search snippets only as discovery or clearly labeled secondary evidence;
-- show `未找到可核实具名联系人` instead of an empty contact-name cell only after all role families applicable to that customer type are exhausted;
+- show `需通过Apollo插件优化搜索具名联系人` instead of an empty contact-name cell only after all role families applicable to that customer type are exhausted;
 - never guess a person's name, title, email pattern, professional-profile URL, phone, purchasing activity, certifications, revenue, or employee count;
 - label named contacts as `已公开核实`, `仅二手来源`, or `待核实`;
-- when no named decision-maker is verifiable, label the result as `未找到具名联系人；已提供部门渠道`, `未找到具名联系人；已提供公司渠道`, or `公开网页未找到可用联系人`;
+- when no named decision-maker is verifiable, label the result as `需通过Apollo插件优化搜索；当前仅提供部门渠道`, `需通过Apollo插件优化搜索；当前仅提供公司渠道`, or `需通过Apollo插件优化搜索；公开网页暂无可用联系人`;
 - use a clearly labeled department or company-general route when no named decision-maker is verifiable;
 - never treat a company-general or department mailbox as a person's email;
 - when a public personal business email remains unavailable after the required email lanes, populate `apollo_deep_research_prompt` with a prompt beginning exactly `需尝试Apollo积分深度背调`.
 
 Use only public pages that do not require the user to register, install an extension, provide credentials, or bypass access controls. Skip login walls, paid gates, and sources whose terms prohibit the intended automated access. Do not make any named platform, registry, trade fair, or country-specific source a universal dependency.
 
-Measure named-contact and public-personal-email coverage before drafting outreach. If a named contact or personal email is still missing after the public search pass, preserve the best public route and write the Apollo deep-research prompt in that row. Follow the saved Apollo mode: never call Apollo in `public_only`; use only actions that current official documentation marks zero-credit in `connected_free`; in `credit_per_call`, finish public and free passes first and request exact-call approval before enrichment. Do not install, register, connect, or spend credits merely because information is missing.
+Measure named-contact and public-personal-email coverage before drafting outreach. If a named contact or personal email is still missing after the public search pass, preserve the best public route and write the Apollo deep-research prompt in that row. When Apollo MCP is available, run only currently documented zero-credit People Search without approval; request exact-call approval before company search, enrichment, email reveal, phone retrieval, waterfall enrichment, or any action with unknown or positive credit cost. Never install, register, connect, or spend credits automatically merely because information is missing.
 
 Normalize domains and legal suffixes. Deduplicate by:
 
@@ -221,7 +222,7 @@ Report:
 - qualified, near-match, and excluded counts;
 - top prospects and why they rank highly;
 - named-contact coverage versus company-channel coverage;
-- public contact-search and professional-profile coverage, unresolved companies, missing personal-email prompts, the saved Apollo mode, and whether free search or individually approved enrichment was used;
+- public contact-search and professional-profile coverage, unresolved companies, missing personal-email prompts, Apollo availability, and whether free search or individually approved enrichment was used;
 - batch ID, historical company count, and duplicates skipped;
 - source limitations and unresolved fields;
 - output workbook path.

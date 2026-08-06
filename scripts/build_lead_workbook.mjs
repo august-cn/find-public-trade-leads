@@ -54,6 +54,8 @@ function hasNamedContact(lead) {
     "未找到具名联系人",
     "未找到具名采购联系人",
     "未找到可核实具名联系人",
+    "需通过apollo插件优化搜索",
+    "需通过apollo插件优化搜索具名联系人",
     "not found",
     "n/a",
   ].includes(name.toLowerCase());
@@ -70,10 +72,10 @@ const contactStatusZh = {
   "verified public": "已公开核实",
   "secondary-source only": "仅二手来源",
   "pending verification": "待核实",
-  "not found": "公开网页未找到可用联系人",
-  "named contact not found; department route provided": "未找到具名联系人；已提供部门渠道",
-  "named contact not found; company route provided": "未找到具名联系人；已提供公司渠道",
-  "no usable public contact found": "公开网页未找到可用联系人",
+  "not found": "需通过Apollo插件优化搜索；公开网页暂无可用联系人",
+  "named contact not found; department route provided": "需通过Apollo插件优化搜索；当前仅提供部门渠道",
+  "named contact not found; company route provided": "需通过Apollo插件优化搜索；当前仅提供公司渠道",
+  "no usable public contact found": "需通过Apollo插件优化搜索；公开网页暂无可用联系人",
 };
 
 const emailTypeZh = {
@@ -98,7 +100,7 @@ const confidenceZh = {
 };
 
 const apolloModeZh = {
-  public_only: "未注册、未安装、未连接或不可用：仅公开网页",
+  public_only: "本次未使用Apollo：仅公开网页",
   connected_free: "已连接，但不使用积分：仅零积分搜索",
   credit_per_call: "已连接：允许逐次审批积分",
 };
@@ -167,7 +169,7 @@ function normalizedContactStatus(lead) {
     (hasText(lead?.email) && emailType === "部门邮箱")
     || (hasText(lead?.phone) && phoneType === "部门电话")
   ) {
-    return "未找到具名联系人；已提供部门渠道";
+    return "需通过Apollo插件优化搜索；当前仅提供部门渠道";
   }
   if (
     hasText(lead?.email)
@@ -175,13 +177,15 @@ function normalizedContactStatus(lead) {
     || hasText(lead?.website)
     || emailType === "联系表单"
   ) {
-    return "未找到具名联系人；已提供公司渠道";
+    return "需通过Apollo插件优化搜索；当前仅提供公司渠道";
   }
-  return "公开网页未找到可用联系人";
+  return "需通过Apollo插件优化搜索；公开网页暂无可用联系人";
 }
 
 function displayContactName(lead) {
-  return hasNamedContact(lead) ? asText(lead.contact_name) : "未找到可核实具名联系人";
+  return hasNamedContact(lead)
+    ? asText(lead.contact_name)
+    : "需通过Apollo插件优化搜索具名联系人";
 }
 
 function displayContactTitle(lead) {
@@ -553,7 +557,7 @@ guide.getRange("D6:H8").format = {
 };
 guide.mergeCells("D10:H13");
 guide.getRange("D10").values = [[
-  "联系人规则：根据国家、语言、行业和客户类型动态生成角色顺序；逐家公司检查官网、公开文档、登记监管、协会商会、展会会议、相关采购公告、商业信号及公开职业资料八类来源。只有证据支持姓名、现任公司和相关职责时才列为具名联系人；不得要求注册或绕过访问限制，不得推测邮箱；缺少公开个人邮箱时标记“需尝试Apollo积分深度背调”。"
+  "联系人规则：根据国家、语言、行业和客户类型动态生成角色顺序；逐家公司检查官网、公开文档、登记监管、协会商会、展会会议、相关采购公告、商业信号及公开职业资料八类来源。只有证据支持姓名、现任公司和相关职责时才列为具名联系人；不得要求注册或绕过访问限制，不得推测邮箱；公开搜索未获得具名联系人时显示“需通过Apollo插件优化搜索具名联系人”，缺少公开个人邮箱时标记“需尝试Apollo积分深度背调”。"
 ]];
 guide.getRange("D10:H13").format = {
   fill: "#E2F0D9",
